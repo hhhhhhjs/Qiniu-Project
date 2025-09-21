@@ -84,7 +84,4 @@ async function main() {
   console.log("🎉 全部文件上传完成！");
 }
 
-console.log("匹配到的文件数量:", files.length);
-console.log("匹配到的文件:", files);
-
 main();
