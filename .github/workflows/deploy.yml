@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master   # 监听 master 分支
+    paths:
+      - 'web/**' # 只有 web 目录下的文件变化才触发
 
 jobs:
   build-and-deploy:
@@ -12,7 +14,7 @@ jobs:
     steps:
       # 1. 拉取代码
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # 2. 安装 Node.js
       - name: Setup Node.js
@@ -20,20 +22,22 @@ jobs:
         with:
           node-version: '22'
 
-      # 3. 安装依赖并构建
+      # 3. 安装 pnpm
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      # 4. 安装依赖 & 构建前端
       - name: Install and Build
         working-directory: ./web
         run: |
-          npm install
-          npm run build
+          pnpm install
+          pnpm build
 
-      # 4. 上传 dist 到七牛云
+      # 5. 上传 dist 到七牛云（调用 upload.js）
       - name: Upload to Qiniu
-        uses: floydspace/qiniu-upload-action@v1.2.3
-        with:
-          args: |
-            -ak ${{ secrets.QINIU_ACCESS_KEY }}
-            -sk ${{ secrets.QINIU_SECRET_KEY }}
-            -bn ${{ secrets.QINIU_BUCKET }}
-            -src ./web/dist
-            -zone z0   # 华东: z0, 华北: z1, 华南: z2, 北美: na0
+        run: node upload.js
+        env:
+          QINIU_ACCESS_KEY: ${{ secrets.QINIU_ACCESS_KEY }}
+          QINIU_SECRET_KEY: ${{ secrets.QINIU_SECRET_KEY }}
+          QINIU_BUCKET: ${{ secrets.QINIU_BUCKET }}
+          QINIU_ZONE: ${{ secrets.QINIU_ZONE }}
