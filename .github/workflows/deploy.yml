@@ -36,7 +36,7 @@ jobs:
       # 5. 上传 dist 到七牛云（调用 upload.js）
       - name: Upload to Qiniu
         working-directory: ./web
-        run: node upload.js
+        run: node upload.cjs
         env:
           QINIU_ACCESS_KEY: ${{ secrets.QINIU_ACCESS_KEY }}
           QINIU_SECRET_KEY: ${{ secrets.QINIU_SECRET_KEY }}
