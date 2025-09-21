@@ -1,0 +1,39 @@
+name: Deploy Frontend to Qiniu
+
+on:
+  push:
+    branches:
+      - master   # 监听 master 分支
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 拉取代码
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # 2. 安装 Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      # 3. 安装依赖并构建
+      - name: Install and Build
+        working-directory: ./web
+        run: |
+          npm install
+          npm run build
+
+      # 4. 上传 dist 到七牛云
+      - name: Upload to Qiniu
+        uses: floydspace/qiniu-upload-action@v1.2.3
+        with:
+          args: |
+            -ak ${{ secrets.QINIU_ACCESS_KEY }}
+            -sk ${{ secrets.QINIU_SECRET_KEY }}
+            -bn ${{ secrets.QINIU_BUCKET }}
+            -src ./web/dist
+            -zone z0   # 华东: z0, 华北: z1, 华南: z2, 北美: na0
