@@ -69,11 +69,11 @@ function uploadFile(localFile, key) {
 
 // 遍历 dist 下的所有文件并上传
 async function main() {
-  const files = glob.sync("web/dist/**/*", { nodir: true });
+  const files = glob.sync("dist/**/*", { nodir: true });
   console.log(`开始上传 ${files.length} 个文件...`);
 
   for (const file of files) {
-    const key = path.relative("web/dist", file).replace(/\\/g, "/"); // 兼容 Windows 路径
+    const key = path.relative("dist", file).replace(/\\/g, "/"); // 兼容 Windows 路径
     try {
       await uploadFile(file, key);
     } catch (err) {
@@ -83,5 +83,8 @@ async function main() {
 
   console.log("🎉 全部文件上传完成！");
 }
+
+console.log("匹配到的文件数量:", files.length);
+console.log("匹配到的文件:", files);
 
 main();

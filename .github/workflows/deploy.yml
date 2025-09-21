@@ -3,9 +3,9 @@ name: Deploy Frontend to Qiniu
 on:
   push:
     branches:
-      - master   # 监听 master 分支
+      - master
     paths:
-      - 'web/**' # 只有 web 目录下的文件变化才触发
+      - 'web/**'
 
 jobs:
   build-and-deploy:
@@ -26,14 +26,17 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm
 
-      # 4. 安装依赖 & 构建前端
-      - name: Install and Build
+      # 4. 安装依赖（pnpm install）
+      - name: Install dependencies
         working-directory: ./web
-        run: |
-          pnpm install
-          pnpm build
+        run: pnpm install
 
-      # 5. 上传 dist 到七牛云（调用 upload.js）
+      # 5. 构建前端（pnpm build）
+      - name: Build web
+        working-directory: ./web
+        run: pnpm build
+
+      # 6. 上传 dist 到七牛云
       - name: Upload to Qiniu
         working-directory: ./web
         run: node upload.cjs
