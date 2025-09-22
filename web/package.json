@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.13",
+    "crypto": "^1.0.1",
     "glob": "^11.0.3",
     "qiniu": "^7.14.0",
     "tailwindcss": "^4.1.13",
