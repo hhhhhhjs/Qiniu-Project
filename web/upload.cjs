@@ -79,35 +79,35 @@ async function main() {
   const files = glob.sync("dist/**/*", { nodir: true });
   console.log(`开始上传 ${files.length} 个文件...`);
 
-  // for (const file of files) {
-  //   const key = path.relative("dist", file).replace(/\\/g, "/"); // 兼容 Windows 路径
-  //   try {
-  //     await uploadFile(file, key);
-  //   } catch (err) {
-  //     console.error("❌ 上传失败:", file, err);
-  //   }
-  // }
-
-  // console.log("🎉 全部文件上传完成！");
-    for (const file of files) {
-    let key = path.relative("dist", file).replace(/\\/g, "/");
-    
-    // 为关键文件添加版本号
-    if (file.endsWith('.js') || file.endsWith('.css') || file.endsWith('.html')) {
-      const hash = getFileHash(file);
-      const ext = path.extname(key);
-      const name = path.basename(key, ext);
-      const dir = path.dirname(key);
-      key = dir === '.' ? `${name}.${hash}${ext}` : `${dir}/${name}.${hash}${ext}`;
-    }
-    
+  for (const file of files) {
+    const key = path.relative("dist", file).replace(/\\/g, "/"); // 兼容 Windows 路径
     try {
       await uploadFile(file, key);
     } catch (err) {
       console.error("❌ 上传失败:", file, err);
     }
   }
+
   console.log("🎉 全部文件上传完成！");
+  //   for (const file of files) {
+  //   let key = path.relative("dist", file).replace(/\\/g, "/");
+    
+  //   // 为关键文件添加版本号
+  //   if (file.endsWith('.js') || file.endsWith('.css') || file.endsWith('.html')) {
+  //     const hash = getFileHash(file);
+  //     const ext = path.extname(key);
+  //     const name = path.basename(key, ext);
+  //     const dir = path.dirname(key);
+  //     key = dir === '.' ? `${name}.${hash}${ext}` : `${dir}/${name}.${hash}${ext}`;
+  //   }
+    
+  //   try {
+  //     await uploadFile(file, key);
+  //   } catch (err) {
+  //     console.error("❌ 上传失败:", file, err);
+  //   }
+  // }
+  // console.log("🎉 全部文件上传完成！");
 }
 
 main();
