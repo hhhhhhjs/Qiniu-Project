@@ -84,49 +84,8 @@
     >
       <div class="flex h-96">
         <!-- 左侧介绍区域 -->
-        <div class="w-1/2 bg-gradient-to-br from-blue-500 to-purple-600 text-white p-8 flex flex-col justify-center items-center rounded-l-lg">
-          <div class="text-center">
-            <!-- 头像 -->
-            <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-6">
-              <el-icon class="text-4xl text-white">
-                <ChatDotRound />
-              </el-icon>
-            </div>
-
-            <!-- 标题 -->
-            <h2 class="text-2xl font-bold mb-4">登录后免费使用完整功能</h2>
-
-            <!-- 功能介绍 -->
-            <div class="space-y-3 text-sm opacity-90">
-              <div class="flex items-center justify-center space-x-2">
-                <el-icon><EditPen /></el-icon>
-                <span>一键润色写作</span>
-              </div>
-              <div class="flex items-center justify-center space-x-2">
-                <el-icon><PieChart /></el-icon>
-                <span>图片视频生成</span>
-              </div>
-              <div class="flex items-center justify-center space-x-2">
-                <el-icon><Document /></el-icon>
-                <span>网页文件解析</span>
-              </div>
-            </div>
-
-            <!-- 下载提示 -->
-            <div class="mt-8 p-4 bg-white/10 rounded-lg">
-              <h3 class="font-semibold mb-2">下载豆包电脑版</h3>
-              <p class="text-xs opacity-80">你的全能 AI 助手，助力每日工作学习</p>
-              <el-button
-                class="mt-3 w-full"
-                type="primary"
-                size="small"
-                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);"
-              >
-                <el-icon class="mr-1"><Download /></el-icon>
-                下载电脑版
-              </el-button>
-            </div>
-          </div>
+        <div class="w-1/2 p-8 flex flex-col justify-center items-center rounded-l-lg">
+          <img src="@/assets/images/yuling.png" alt="logo">
         </div>
 
         <!-- 右侧登录表单 -->
@@ -136,6 +95,7 @@
             :is="currentComponent"
             @login-success="handleLoginSuccess"
             @register-click="handleRegister"
+            @register-success="handleRegisterSuccess"
             ></component>
           </KeepAlive>
         </div>
@@ -223,9 +183,15 @@ const handleLogin = () => {
 
 
 const handleRegister = (message:string) => {
-  console.log('看看', message)
-  currentComponent.value = RegisterForm
+  if(message){
+    currentComponent.value = RegisterForm
+  }
+}
 
+const handleRegisterSuccess = (value:string) => {
+  if(value) {
+    currentComponent.value = LoginForm
+  }
 }
 </script>
 

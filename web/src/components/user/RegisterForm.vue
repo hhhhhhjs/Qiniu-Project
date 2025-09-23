@@ -74,7 +74,7 @@ import { User, Lock, Message } from '@element-plus/icons-vue'
 
 // 事件定义
 const emit = defineEmits<{
-  'register-success': [userInfo: any]
+  'register-success': [registerSuccess: string]
   'login-click': []
 }>()
 
@@ -131,14 +131,8 @@ const handleSubmit = async () => {
     // 模拟注册请求
     await new Promise(resolve => setTimeout(resolve, 1000))
 
-    const userInfo = {
-      id: Date.now(),
-      username: form.account,
-      email: form.email
-    }
-
     ElMessage.success('注册成功！')
-    emit('register-success', userInfo)
+    emit('register-success', 'registerSuccess')
   } catch (e) {
     ElMessage.error('注册失败，请稍后重试')
   } finally {
@@ -153,21 +147,33 @@ const handleGoLogin = () => {
 
 <style scoped>
 .login-form-container {
-  padding: 10px;
-  max-width: 400px;
+  max-width: 360px;
+  width: 100%;
+  padding: 12px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 :deep(.el-input__wrapper) {
-  border-radius: 8px;
+  border-radius: 10px;
+  height: 42px;
+  padding: 0 12px;
 }
 
-:deep(.el-button) {
-  border-radius: 8px;
-  height: 44px;
+:deep(.el-input__inner) {
+  font-size: 14px;
 }
 
 :deep(.el-form-item) {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+}
+
+:deep(.el-button) {
+  border-radius: 10px;
+  height: 44px;
+}
+
+:deep(.el-form-item__error) {
+  margin-top: 6px;
 }
 </style>
