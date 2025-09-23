@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import './tailwind.css'
+import './styles/meteor.css'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import router from '@/router/index'

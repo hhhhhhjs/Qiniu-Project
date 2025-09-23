@@ -2,9 +2,8 @@
   <div class="login-form-container">
     <div class="text-center mb-6">
       <h3 class="text-xl font-semibold text-gray-800 mb-2">欢迎登录</h3>
-      <p class="text-gray-600 text-sm">请输入您的账号和密码</p>
     </div>
-
+    
     <el-form
       ref="formRef"
       :model="form"
@@ -61,7 +60,7 @@ import { User, Lock } from '@element-plus/icons-vue'
 // 定义事件
 const emit = defineEmits<{
   'login-success': [userInfo: any]
-  'register-click': []
+  'register-click': [isRegister: string]
 }>()
 
 // 响应式数据
@@ -117,8 +116,7 @@ const handleSubmit = async () => {
 }
 
 const handleRegister = () => {
-  emit('register-click')
-  ElMessage.info('注册功能待开发')
+  emit('register-click', 'RegisterForm')
 }
 </script>
 
