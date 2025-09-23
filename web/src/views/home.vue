@@ -2,11 +2,8 @@
   <div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
     <!-- 顶部导航栏 -->
     <header class="flex justify-between items-center px-6 py-4 bg-white/80 backdrop-blur-sm border-b border-gray-200/50">
-      <div class="flex items-center space-x-2">
-        <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-          <span class="text-white font-bold text-sm">AI</span>
-        </div>
-        <span class="text-xl font-semibold text-gray-800">智能助手</span>
+      <div class="w-20 h-20">
+        <img src="@/assets/images/yuling.png" alt="logo">
       </div>
 
       <div class="flex items-center space-x-4">
@@ -16,13 +13,20 @@
     </header>
 
     <!-- 主要内容区域 -->
-    <main class="flex flex-col items-center justify-center px-6 py-16">
+    <main class="flex flex-col items-center justify-center px-6 py-12">
       <!-- 欢迎标题 -->
       <div class="text-center mb-12">
-        <h1 class="text-5xl font-bold text-gray-800 mb-4">
-          你好，我是你的<span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">智能角色扮演者</span>
-        </h1>
-        <p class="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+        <div class="meteor-frame inline-block px-10 py-6 rounded-full relative">
+          <span class="meteor-border"></span>
+          <h1 class="m-0">
+            <span class="meteor-content text-5xl font-bold text-gray-800 leading-tight inline-block">
+              你好，我是
+              <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">语灵</span>
+              你的<span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">智能角色扮演者</span>
+            </span>
+          </h1>
+        </div>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed mt-4">
           旨在扮演各种角色，在解答问题的同时提供丰富的情绪价值！
         </p>
       </div>
@@ -48,25 +52,24 @@
       </div>
 
       <!-- 功能卡片 -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-4xl mb-16">
-        <div
-          v-for="feature in features"
-          :key="feature.name"
-          class="feature-card p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-100 hover:border-blue-200"
-          @click="handleFeatureClick(feature)"
+      <div class="grid grid-cols-3 md:grid-cols-3 gap-10 w-[45%] max-w-4xl mb-16">
+        <el-card
+        v-for="feature in features"
+        :key="feature.id"
+        class="phone-card cursor-pointer hover:shadow-lg transition-shadow"
+        @click="handleFeatureClick(feature)"
+        :body-style="{ padding: '0' }"
+        shadow="hover"
         >
-          <div class="flex flex-col items-center text-center">
-            <div class="w-12 h-12 rounded-lg flex items-center justify-center mb-3" :class="feature.bgColor">
-              <component :is="feature.icon" class="w-6 h-6" :class="feature.iconColor" />
-            </div>
-            <span class="text-sm font-medium text-gray-700">{{ feature.name }}</span>
+          <div class="bg-[#0B0B0C] rounded-2xl overflow-hidden h-80 w-full cursor-pointer">
+            <img :src="feature.background" :alt="feature.roleName" class="w-full h-full object-cover">
           </div>
-        </div>
+        </el-card>
       </div>
 
       <!-- 底部提示 -->
       <div class="text-center text-gray-500 text-sm">
-        <p>点击上方功能卡片快速开始，或直接在搜索框中输入你的问题</p>
+        <p>点击上方功能卡片快速开始，或直接在搜索框中输入你想要扮演的角色</p>
       </div>
     </main>
 
@@ -127,8 +130,14 @@
         </div>
 
         <!-- 右侧登录表单 -->
-        <div class="w-1/2 p-8 bg-white rounded-r-lg">
-          <login-form @login-success="handleLoginSuccess" />
+        <div class="w-1/2 p-5 bg-white rounded-r-lg">
+          <KeepAlive>
+            <component
+            :is="currentComponent"
+            @login-success="handleLoginSuccess"
+            @register-click="handleRegister"
+            ></component>
+          </KeepAlive>
         </div>
       </div>
     </el-dialog>
@@ -136,7 +145,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { Ref, ref, shallowRef } from 'vue'
+import type { Component } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   Search,
@@ -145,61 +155,43 @@ import {
   EditPen,
   Document,
   PieChart,
-  VideoCamera,
-  Brush,
   Download
 } from '@element-plus/icons-vue'
-import LoginForm from '@/components/LoginForm.vue'
-import { useRouter } from 'vue-router'
+import LoginForm from '@/components/user/LoginForm.vue'
+// 导入图片
+import jixiaomeiImg from '@/assets/images/roles/jixiaomei.jpg'
+import feidudu from '@/assets/images/roles/肥嘟嘟左卫门.jpg'
+import labixx from '@/assets/images/roles/image.png'
+import RegisterForm from '@/components/user/RegisterForm.vue'
+
 
 // 响应式数据
 const showLoginDialog = ref<boolean>(false)
 const searchQuery = ref('')
-const router = useRouter()
+const currentComponent = shallowRef<Component>(LoginForm)
+
+interface featureType {
+  id: number
+  roleName: string
+  background: string
+}
 
 // 功能卡片数据
-const features = ref([
+const features:Ref<Array<featureType>> = ref([
   {
-    name: '智能对话',
-    icon: ChatDotRound,
-    bgColor: 'bg-blue-100',
-    iconColor: 'text-blue-600',
-    action: 'chat'
+    id: 1,
+    roleName: '集小美',
+    background: jixiaomeiImg
   },
   {
-    name: '文本创作',
-    icon: EditPen,
-    bgColor: 'bg-green-100',
-    iconColor: 'text-green-600',
-    action: 'write'
+    id: 2,
+    roleName: '肥嘟嘟左卫门',
+    background: feidudu
   },
   {
-    name: '文档分析',
-    icon: Document,
-    bgColor: 'bg-purple-100',
-    iconColor: 'text-purple-600',
-    action: 'analyze'
-  },
-  {
-    name: '数据洞察',
-    icon: PieChart,
-    bgColor: 'bg-orange-100',
-    iconColor: 'text-orange-600',
-    action: 'insight'
-  },
-  {
-    name: '视频理解',
-    icon: VideoCamera,
-    bgColor: 'bg-red-100',
-    iconColor: 'text-red-600',
-    action: 'video'
-  },
-  {
-    name: '图像生成',
-    icon: Brush,
-    bgColor: 'bg-pink-100',
-    iconColor: 'text-pink-600',
-    action: 'image'
+    id: 3,
+    roleName: '拉比XX',
+    background: labixx
   }
 ])
 
@@ -216,13 +208,12 @@ const handleSearch = () => {
 }
 
 const handleFeatureClick = (feature: any) => {
-  ElMessage.info(`点击了: ${feature.name}`)
+  ElMessage.info(`点击了: ${feature.roleName}`)
   // 这里可以根据不同的功能跳转到不同页面或执行不同操作
 }
 
 const handleLoginSuccess = () => {
   showLoginDialog.value = false
-  ElMessage.success('登录成功！')
   // 这里可以处理登录成功后的逻辑
 }
 
@@ -230,6 +221,12 @@ const handleLogin = () => {
     showLoginDialog.value = true
 }
 
+
+const handleRegister = (message:string) => {
+  console.log('看看', message)
+  currentComponent.value = RegisterForm
+
+}
 </script>
 
 <style scoped>
@@ -278,6 +275,10 @@ const handleLogin = () => {
 .feature-card:hover {
   transform: translateY(-2px);
 }
+
+.phone-card { border: none; background: transparent; }
+.phone-card :deep(.el-card__body) { padding: 0; background: transparent; }
+
 
 /* 响应式设计 */
 @media (max-width: 768px) {
