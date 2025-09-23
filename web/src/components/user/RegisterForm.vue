@@ -147,17 +147,22 @@ const handleGoLogin = () => {
 
 <style scoped>
 .login-form-container {
-  max-width: 360px;
+  max-width: 320px;
   width: 100%;
-  padding: 12px;
+  padding: 8px;
   margin: 0 auto;
   box-sizing: border-box;
 }
 
+/* 收紧表单头部间距与协议字号 */
+.login-form-container .text-center { margin-bottom: 12px; }
+:deep(.el-checkbox__label) { font-size: 12px; }
+
+
 :deep(.el-input__wrapper) {
   border-radius: 10px;
-  height: 42px;
-  padding: 0 12px;
+  height: 38px;
+  padding: 0 10px;
 }
 
 :deep(.el-input__inner) {
@@ -165,15 +170,16 @@ const handleGoLogin = () => {
 }
 
 :deep(.el-form-item) {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 :deep(.el-button) {
   border-radius: 10px;
-  height: 44px;
+  height: 40px;
 }
 
 :deep(.el-form-item__error) {
-  margin-top: 6px;
+  position: static; /* 让错误提示占据文档流，避免与下一个输入重叠 */
+  margin-top: 4px;
 }
 </style>
