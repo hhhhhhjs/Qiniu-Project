@@ -1,0 +1,38 @@
+server:
+  port: 14101
+spring:
+  application:
+    name: campus-assistant-data
+  datasource:
+    username: root
+    password: xnDsyBAzdqTLx3YR
+    url: jdbc:mysql://192.168.18.59:13888/pbm_dev?autoReconnect=true&useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=CONVERT_TO_NULL&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+  redis:
+    database: 4
+    host: 192.168.18.58
+    port: 13886
+    password: A7TpOSN1zmq7aOmt
+  cloud:
+    nacos:
+      discovery:
+        enabled: false
+      config:
+        enabled: false
+  servlet:
+    multipart:
+      max-request-size: 1024MB
+      max-file-size: 300MB
+max:
+  core:
+    app-type: 2
+    description: "校园助手平台"
+    app-version: 1.0.0
+    ApiDefinitions:
+      - rule: 0
+        url: /assets/*
+        method: GET
+  db:
+    generator:
+      package-name: com.campus.assistant.server
+      output-dir: /server/src/main/java
+      author: D

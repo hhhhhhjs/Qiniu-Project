@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: zjimee-pba
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.18.58:13887
+      config:
+        server-addr: 192.168.18.58:13887
+        file-extension: yaml
