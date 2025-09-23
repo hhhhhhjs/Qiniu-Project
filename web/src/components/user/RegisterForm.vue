@@ -72,6 +72,7 @@ import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import { User, Lock, Message } from '@element-plus/icons-vue'
 
+
 // 事件定义
 const emit = defineEmits<{
   'register-success': [registerSuccess: string]
@@ -128,8 +129,8 @@ const handleSubmit = async () => {
     if (!valid) return
     loading.value = true
 
-    // 模拟注册请求
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // 调用后端注册接口
+    await registerApi({ account: form.account, password: form.password, email: form.email })
 
     ElMessage.success('注册成功！')
     emit('register-success', 'registerSuccess')

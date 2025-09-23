@@ -56,6 +56,7 @@
 import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
+import { login } from '@/api/userController'
 
 // 定义事件
 const emit = defineEmits<{
@@ -93,20 +94,13 @@ const handleSubmit = async () => {
 
     loading.value = true
 
-    // 模拟登录请求
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    // 模拟登录成功
-    const userInfo = {
-      id: 1,
-      username: form.account,
-      email: `${form.account}@example.com`
-    }
+    // 调用后端登录接口
+    const res = await login({ account: form.account, password: form.password })
 
     ElMessage.success('登录成功！')
-    
-    // 触发登录成功事件，传递用户信息
-    emit('login-success', userInfo)
+
+    // 将后端返回的数据作为用户信息透传给上层
+    emit('login-success', res)
 
   } catch (error) {
     ElMessage.error('登录失败，请检查账号密码')
