@@ -2,8 +2,6 @@
 const qiniu = require("qiniu");
 const glob = require("glob");
 const path = require("path");
-const fs = require("fs");
-const crypto = require('crypto');
 
 // 从环境变量读取（在 GitHub Actions 里通过 secrets 注入）
 const accessKey = process.env.QINIU_ACCESS_KEY;
@@ -68,12 +66,6 @@ function uploadFile(localFile, key) {
   });
 }
 
-// 生成文件哈希作为版本号
-function getFileHash(filePath) {
-  const fileBuffer = fs.readFileSync(filePath);
-  return crypto.createHash('md5').update(fileBuffer).digest('hex').substring(0, 8);
-}
-
 // 遍历 dist 下的所有文件并上传
 async function main() {
   const files = glob.sync("dist/**/*", { nodir: true });
@@ -89,25 +81,6 @@ async function main() {
   }
 
   console.log("🎉 全部文件上传完成！");
-  //   for (const file of files) {
-  //   let key = path.relative("dist", file).replace(/\\/g, "/");
-    
-  //   // 为关键文件添加版本号
-  //   if (file.endsWith('.js') || file.endsWith('.css') || file.endsWith('.html')) {
-  //     const hash = getFileHash(file);
-  //     const ext = path.extname(key);
-  //     const name = path.basename(key, ext);
-  //     const dir = path.dirname(key);
-  //     key = dir === '.' ? `${name}.${hash}${ext}` : `${dir}/${name}.${hash}${ext}`;
-  //   }
-    
-  //   try {
-  //     await uploadFile(file, key);
-  //   } catch (err) {
-  //     console.error("❌ 上传失败:", file, err);
-  //   }
-  // }
-  // console.log("🎉 全部文件上传完成！");
 }
 
 main();
