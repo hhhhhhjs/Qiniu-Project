@@ -2,6 +2,7 @@
 const qiniu = require("qiniu");
 const glob = require("glob");
 const path = require("path");
+const mime = require("mime-types");
 
 // 从环境变量读取（在 GitHub Actions 里通过 secrets 注入）
 const accessKey = process.env.QINIU_ACCESS_KEY;
@@ -47,6 +48,8 @@ function uploadFile(localFile, key) {
     const uploadToken = putPolicy.uploadToken(mac);
     // Fresh PutExtra per file to avoid stale mimeType being reused
     const putExtra = new qiniu.form_up.PutExtra();
+    const guessedMime = mime.lookup(localFile) || mime.lookup(key) || undefined;
+    if (guessedMime) putExtra.mimeType = guessedMime;
 
     formUploader.putFile(uploadToken, key, localFile, putExtra, function (
       respErr,
