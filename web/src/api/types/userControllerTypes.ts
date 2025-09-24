@@ -3,3 +3,23 @@ export interface Login {
   phone: string
   password: string // base64 处理后的密码
 }
+
+export interface addUserType {
+  "email": "string",
+  "name": "string",
+  "password": "string",
+  "phone": "string"
+}
+
+export interface editUserMesType {
+  "email": "string",
+  "id": 0,
+  "name": "string",
+  "phone": "string"
+}
+
+export interface changeUserPasswordType {
+  "id": string | number,
+  "password": "string",
+  "newPassword": "string"
+}

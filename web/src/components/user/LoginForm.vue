@@ -1,6 +1,6 @@
 <template>
   <div class="login-form-container">
-    <div class="text-center mb-6">
+    <div class="text-center mb-8 mt-10">
       <h3 class="text-xl font-semibold text-gray-800 mb-2">欢迎登录</h3>
     </div>
     
@@ -94,13 +94,9 @@ const handleSubmit = async () => {
 
     loading.value = true
 
-    // 调用后端登录接口
-    const res = await login({ account: form.account, password: form.password })
-
     ElMessage.success('登录成功！')
 
     // 将后端返回的数据作为用户信息透传给上层
-    emit('login-success', res)
 
   } catch (error) {
     ElMessage.error('登录失败，请检查账号密码')
