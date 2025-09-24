@@ -17,6 +17,12 @@ export default defineConfig({
     proxy: {
       '/organization': { 
         target: 'http://localhost:14101', // 连接后端地址
+        // 去除 organization
+        // configure: (proxy, _) => {
+        //   proxy.on('proxyReq', (proxyReq) => {
+        //     proxyReq.path = proxyReq.path.replace(/^\/organization/, '')
+        //   })
+        // },
         changeOrigin: true,
       },
     },
