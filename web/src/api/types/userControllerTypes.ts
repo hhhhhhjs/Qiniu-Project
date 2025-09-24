@@ -5,21 +5,21 @@ export interface Login {
 }
 
 export interface addUserType {
-  "email": "string",
-  "name": "string",
-  "password": "string",
-  "phone": "string"
+  email: string
+  name: string
+  password: string
+  phone: string
 }
 
 export interface editUserMesType {
-  "email": "string",
-  "id": 0,
-  "name": "string",
-  "phone": "string"
+  email: string
+  id: number
+  name: string
+  phone: string
 }
 
 export interface changeUserPasswordType {
-  "id": string | number,
-  "password": "string",
-  "newPassword": "string"
+  id: string | number
+  password: string
+  newPassword: string
 }

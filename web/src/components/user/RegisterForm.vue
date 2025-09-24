@@ -25,6 +25,7 @@
         <el-input
           v-model="form.email"
           placeholder="请输入邮箱"
+          :prefix-icon="Message"
           clearable
         />
       </el-form-item>
@@ -33,6 +34,7 @@
         <el-input
           v-model="form.phone"
           placeholder="请输入手机号"
+          :prefix-icon="Phone"
           clearable
         />
       </el-form-item>
@@ -80,8 +82,9 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
-import { User, Lock } from '@element-plus/icons-vue'
+import { User, Lock, Phone, Message } from '@element-plus/icons-vue'
 import { addUser } from '@/api/userController'
+import type { addUserType } from '@/api/types/userControllerTypes'
 
 // 事件定义
 const emit = defineEmits<{
@@ -130,7 +133,8 @@ const rules = {
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度在 6 到 20 个字符', trigger: 'blur' }
+    { min: 6, max: 20, message: '密码长度在 6 到 20 个字符', trigger: 'blur' },
+    { pattern: /^[A-Za-z0-9!-/:-@\[-`{-~]+$/, message: '仅支持英文字符、数字和标点符号（不含空格）', trigger: ['blur', 'change'] }
   ],
   confirmPassword: [
     { validator: validateConfirm, trigger: ['blur', 'change'] }
@@ -148,13 +152,13 @@ const handleSubmit = async () => {
     if (!valid) return
     loading.value = true
 
-    const payload = {
+    const payload: addUserType = {
       name: form.name,
       email: form.email,
       phone: form.phone,
-      password: form.password
+      password: btoa(form.password)
     }
-    await addUser(payload as any)
+    await addUser(payload)
 
     ElMessage.success('注册成功！')
     emit('register-success', 'registerSuccess')
@@ -166,9 +170,6 @@ const handleSubmit = async () => {
   }
 }
 
-const handleGoLogin = () => {
-  emit('login-click', 'successLogin')
-}
 </script>
 
 <style scoped>
