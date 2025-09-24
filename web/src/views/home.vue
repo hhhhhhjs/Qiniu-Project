@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
     <!-- 顶部导航栏 -->
-    <header class="flex justify-between items-center px-6 py-4 bg-white/80 backdrop-blur-sm border-b border-gray-200/50">
+    <header class="flex justify-between items-center px-6 py-2 bg-white/80 backdrop-blur-sm border-b border-gray-200/50">
       <div class="w-20 h-20">
         <img src="@/assets/images/yuling.png" alt="logo">
       </div>
@@ -13,7 +13,7 @@
     </header>
 
     <!-- 主要内容区域 -->
-    <main class="flex flex-col items-center justify-center px-6 py-12">
+    <main class="flex flex-col items-center justify-center px-6 ">
       <!-- 欢迎标题 -->
       <div class="text-center mb-12">
         <div class="meteor-frame inline-block px-10 py-6 rounded-full relative">
@@ -82,20 +82,21 @@
       :title="null"
       class="login-dialog"
     >
-      <div class="flex h-96">
+      <div class="flex h-[400px]">
         <!-- 左侧介绍区域 -->
         <div class="w-1/2 p-8 flex flex-col justify-center items-center rounded-l-lg">
           <img src="@/assets/images/yuling.png" alt="logo">
         </div>
 
-        <!-- 右侧登录表单 -->
-        <div class="w-1/2 p-5 bg-white rounded-r-lg">
+        <!-- 右侧登录/注册表单 -->
+        <div class="w-1/2 bg-white rounded-r-lg">
           <KeepAlive>
             <component
             :is="currentComponent"
             @login-success="handleLoginSuccess"
             @register-click="handleRegister"
             @register-success="handleRegisterSuccess"
+            @login-click="handleLogin"
             ></component>
           </KeepAlive>
         </div>
@@ -123,6 +124,7 @@ import jixiaomeiImg from '@/assets/images/roles/jixiaomei.jpg'
 import feidudu from '@/assets/images/roles/肥嘟嘟左卫门.jpg'
 import labixx from '@/assets/images/roles/image.png'
 import RegisterForm from '@/components/user/RegisterForm.vue'
+import Login from './user/login.vue'
 
 
 // 响应式数据
@@ -177,10 +179,13 @@ const handleLoginSuccess = () => {
   // 这里可以处理登录成功后的逻辑
 }
 
-const handleLogin = () => {
+const handleLogin = (message: string) => {
     showLoginDialog.value = true
+    console.log('登录', message)
+    if(message) {
+      currentComponent.value = LoginForm
+    }
 }
-
 
 const handleRegister = (message:string) => {
   if(message){
@@ -196,6 +201,10 @@ const handleRegisterSuccess = (value:string) => {
 </script>
 
 <style scoped>
+
+:deep(.el-dialog) {
+
+}
 .search-input :deep(.el-input__wrapper) {
   border-radius: 24px;
   padding: 12px 20px;
