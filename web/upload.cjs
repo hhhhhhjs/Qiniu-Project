@@ -38,7 +38,6 @@ const config = new qiniu.conf.Config();
 config.zone = zoneConfig;
 
 const formUploader = new qiniu.form_up.FormUploader(config);
-const putExtra = new qiniu.form_up.PutExtra();
 
 // 上传单个文件
 function uploadFile(localFile, key) {
@@ -46,6 +45,8 @@ function uploadFile(localFile, key) {
     const options = { scope: bucket + ":" + key };
     const putPolicy = new qiniu.rs.PutPolicy(options);
     const uploadToken = putPolicy.uploadToken(mac);
+    // Fresh PutExtra per file to avoid stale mimeType being reused
+    const putExtra = new qiniu.form_up.PutExtra();
 
     formUploader.putFile(uploadToken, key, localFile, putExtra, function (
       respErr,
