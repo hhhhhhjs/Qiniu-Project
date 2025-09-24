@@ -48,7 +48,7 @@ export const getUserList = () => {
 
 // 重置用户密码
 export const resetUserPassword = (id: number | string) => {
-  return request.put('user/reset', {
+  return request.put('/user/reset', {
     id
   })
 }

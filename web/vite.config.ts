@@ -15,8 +15,8 @@ export default defineConfig({
     port: 9988,
     open: true,
     proxy: {
-      '/api': { //TODO: 替换为真实的后端地址
-        target: 'http://localhost:1218', // 连接后端地址
+      '/organization': { 
+        target: 'http://localhost:14101', // 连接后端地址
         changeOrigin: true,
       },
     },
