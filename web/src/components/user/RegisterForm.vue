@@ -2,7 +2,6 @@
   <div class="login-form-container">
     <div class="text-center mb-6">
       <h3 class="text-xl font-semibold text-gray-800 mb-2">创建账号</h3>
-      <p class="text-gray-600 text-sm">填写以下信息完成注册</p>
     </div>
 
     <el-form
@@ -13,11 +12,29 @@
       size="large"
       @submit.prevent="handleSubmit"
     >
-      <el-form-item prop="account">
+      <el-form-item prop="name">
         <el-input
-          v-model="form.account"
+          v-model="form.name"
           placeholder="请输入用户名"
           :prefix-icon="User"
+          clearable
+        />
+      </el-form-item>
+
+      <el-form-item prop="email">
+        <el-input
+          v-model="form.email"
+          placeholder="请输入邮箱"
+          :prefix-icon="Message"
+          clearable
+        />
+      </el-form-item>
+
+      <el-form-item prop="phone">
+        <el-input
+          v-model="form.phone"
+          placeholder="请输入手机号"
+          :prefix-icon="Phone"
           clearable
         />
       </el-form-item>
@@ -44,7 +61,7 @@
         />
       </el-form-item>
 
-      <el-form-item prop="agree">
+      <el-form-item prop="agree" class="agree-item">
         <el-checkbox v-model="form.agree">我已阅读并同意《用户协议》和《隐私政策》</el-checkbox>
       </el-form-item>
 
@@ -59,24 +76,20 @@
         </el-button>
       </el-form-item>
     </el-form>
-
-    <div class="text-center text-sm text-gray-500 mt-4">
-      <span>已经有账号？</span>
-      <el-button type="primary" text @click="handleGoLogin">去登录</el-button>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
-import { User, Lock, Message } from '@element-plus/icons-vue'
-
+import { User, Lock, Phone, Message } from '@element-plus/icons-vue'
+import { addUser } from '@/api/userController'
+import type { addUserType } from '@/api/types/userControllerTypes'
 
 // 事件定义
 const emit = defineEmits<{
   'register-success': [registerSuccess: string]
-  'login-click': []
+  'login-click': [loginSuccess: string]
 }>()
 
 // 表单引用与状态
@@ -84,8 +97,9 @@ const formRef = ref()
 const loading = ref(false)
 
 const form = reactive({
-  account: '',
+  name: '',
   email: '',
+  phone: '',
   password: '',
   confirmPassword: '',
   agree: false,
@@ -105,13 +119,22 @@ const validateAgree = (rule: any, value: boolean, callback: Function) => {
 }
 
 const rules = {
-  account: [
+  name: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { min: 3, max: 20, message: '用户名长度在 3 到 20 个字符', trigger: 'blur' }
   ],
+  email: [
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
+    { type: 'email', message: '请输入正确的邮箱格式', trigger: ['blur', 'change'] }
+  ],
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: ['blur', 'change'] }
+  ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度在 6 到 20 个字符', trigger: 'blur' }
+    { min: 6, max: 20, message: '密码长度在 6 到 20 个字符', trigger: 'blur' },
+    { pattern: /^[A-Za-z0-9!-/:-@\[-`{-~]+$/, message: '仅支持英文字符、数字和标点符号（不含空格）', trigger: ['blur', 'change'] }
   ],
   confirmPassword: [
     { validator: validateConfirm, trigger: ['blur', 'change'] }
@@ -129,34 +152,36 @@ const handleSubmit = async () => {
     if (!valid) return
     loading.value = true
 
-    // 调用后端注册接口
-    await registerApi({ account: form.account, password: form.password, email: form.email })
+    const payload: addUserType = {
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      password: btoa(form.password)
+    }
+    await addUser(payload)
 
     ElMessage.success('注册成功！')
     emit('register-success', 'registerSuccess')
-  } catch (e) {
-    ElMessage.error('注册失败，请稍后重试')
+  } catch (e: any) {
+    const msg = e?.response?.data?.message || '注册失败，请稍后重试'
+    ElMessage.error(msg)
   } finally {
     loading.value = false
   }
 }
 
-const handleGoLogin = () => {
-  emit('login-click')
-}
 </script>
 
 <style scoped>
 .login-form-container {
-  max-width: 320px;
+  max-width: 360px; /* 稍微增加宽度，但保持紧凑 */
   width: 100%;
-  padding: 8px;
   margin: 0 auto;
   box-sizing: border-box;
 }
 
 /* 收紧表单头部间距与协议字号 */
-.login-form-container .text-center { margin-bottom: 12px; }
+.login-form-container .text-center { margin-bottom: 8px; }
 :deep(.el-checkbox__label) { font-size: 12px; }
 
 
@@ -171,16 +196,32 @@ const handleGoLogin = () => {
 }
 
 :deep(.el-form-item) {
-  margin-bottom: 12px;
+  margin-bottom: 18px; /* 仍为错误提示预留空间，同时整体再收紧一些 */
 }
 
 :deep(.el-button) {
   border-radius: 10px;
-  height: 40px;
+  height: 36px; /* 调小按钮高度 */
+}
+
+:deep(.el-form-item__content) {
+  position: relative;
+}
+
+/* 阅读用户协议 — 单独收紧与按钮间距 */
+.agree-item {
+  margin-bottom: 12px; /* 再往上提一点，仍保留错误提示空间 */
 }
 
 :deep(.el-form-item__error) {
-  position: static; /* 让错误提示占据文档流，避免与下一个输入重叠 */
-  margin-top: 4px;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin: 2px 0 0 0; /* 与输入框保持极小距离 */
+  padding: 0;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap; /* 避免换行导致高度增加 */
+  pointer-events: none; /* 避免影响交互 */
 }
 </style>

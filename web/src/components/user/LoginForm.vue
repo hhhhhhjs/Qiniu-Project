@@ -1,9 +1,9 @@
 <template>
   <div class="login-form-container">
-    <div class="text-center mb-6">
+    <div class="text-center mb-8 mt-10">
       <h3 class="text-xl font-semibold text-gray-800 mb-2">欢迎登录</h3>
     </div>
-    
+
     <el-form
       ref="formRef"
       :model="form"
@@ -12,14 +12,19 @@
       size="large"
       @submit.prevent="handleSubmit"
     >
-      <el-form-item prop="account">
+      <el-form-item prop="phone">
         <el-input
-          v-model="form.account"
-          placeholder="请输入账号"
-          :prefix-icon="User"
+          v-model="form.phone"
+          placeholder="请输入手机号"
+          :prefix-icon="Phone"
           clearable
         />
       </el-form-item>
+      <div class="text-right text-sm -mt-2 mb-2 flex place-content-between">
+        <img :src="captchaUrl" alt="验证码" v-if="captchaUrl" class="w-20 h-6 block">
+        <el-link type="primary" :underline="false" @click="handleGetCode">获取验证码</el-link>
+      </div>
+
 
       <el-form-item prop="password">
         <el-input
@@ -30,6 +35,15 @@
           show-password
           clearable
           @keyup.enter="handleSubmit"
+        />
+      </el-form-item>
+
+      <el-form-item prop="code">
+        <el-input
+          v-model="form.code"
+          placeholder="请输入验证码"
+          :prefix-icon="Message"
+          clearable
         />
       </el-form-item>
 
@@ -45,18 +59,18 @@
       </el-form-item>
     </el-form>
 
-    <div class="text-center text-sm text-gray-500 mt-4">
+    <div class="text-center text-sm text-gray-500 mt-0">
       <span>还没有账号？</span>
-      <el-button type="primary" text @click="handleRegister">立即注册</el-button>
+      <el-link @click="handleRegister">立即注册</el-link>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
-import { User, Lock } from '@element-plus/icons-vue'
-import { login } from '@/api/userController'
+import { Phone, Message, Lock } from '@element-plus/icons-vue'
+import { login, getVerifyCode } from '@/api/userController'
 
 // 定义事件
 const emit = defineEmits<{
@@ -66,22 +80,42 @@ const emit = defineEmits<{
 
 // 响应式数据
 const formRef = ref()
-const loading = ref(false)
+const loading = ref<boolean>(false)
+const captchaUrl = ref<string>('')
 
 const form = reactive({
-  account: '',
+  phone: '',
+  code: '',
   password: ''
 })
 
 const rules = {
-  account: [
-    { required: true, message: '请输入账号', trigger: 'blur' },
-    { min: 3, max: 20, message: '账号长度在 3 到 20 个字符', trigger: 'blur' }
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: ['blur', 'change'] }
+  ],
+  code: [
+    { required: true, message: '请输入验证码', trigger: 'blur' }
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, max: 20, message: '密码长度在 6 到 20 个字符', trigger: 'blur' }
   ]
+}
+
+const handleGetCode = async () => {
+  if (!form.phone) {
+    ElMessage.warning('请先输入手机号')
+    return
+  }
+  try {
+    const blob = await getVerifyCode() as unknown as Blob
+    if (captchaUrl.value) URL.revokeObjectURL(captchaUrl.value)
+    captchaUrl.value = URL.createObjectURL(blob)
+  } catch (e: any) {
+    const msg = e?.response?.data?.message || '获取验证码失败'
+    ElMessage.error(msg)
+  }
 }
 
 // 方法
@@ -94,16 +128,23 @@ const handleSubmit = async () => {
 
     loading.value = true
 
-    // 调用后端登录接口
-    const res = await login({ account: form.account, password: form.password })
+    const payload = {
+      phone: form.phone,
+      password: btoa(form.password),
+      code: form.code
+    }
+    const res = await login(payload as any)
+    if(res.success){
+      localStorage.setItem('token', res.obj)
+      ElMessage.success('登录成功！')
+      emit('login-success', 'loginSuccess')
+    } else {
+      ElMessage.error(res.msg || '登录失败')
+    }
 
-    ElMessage.success('登录成功！')
-
-    // 将后端返回的数据作为用户信息透传给上层
-    emit('login-success', res)
-
-  } catch (error) {
-    ElMessage.error('登录失败，请检查账号密码')
+  } catch (e: any) {
+    const msg = e?.response?.data?.message || '登录失败，请检查手机号、密码或验证码'
+    ElMessage.error(msg)
   } finally {
     loading.value = false
   }
@@ -112,6 +153,11 @@ const handleSubmit = async () => {
 const handleRegister = () => {
   emit('register-click', 'RegisterForm')
 }
+
+onBeforeUnmount(() => {
+  if (captchaUrl.value) URL.revokeObjectURL(captchaUrl.value)
+})
+
 </script>
 
 <style scoped>

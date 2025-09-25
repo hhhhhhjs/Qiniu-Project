@@ -3,7 +3,7 @@ import axios from 'axios'
 // 统一的 axios 实例
 const request = axios.create({
   // 在本地开发通过 vite 代理到后端；线上可由环境变量覆盖
-  baseURL: '/organization', // TODO: 如需直连后端，可改为实际后端地址（例如 https://api.example.com）
+  baseURL: '/organization',
   timeout: 10000,
   withCredentials: true,
 })
@@ -11,7 +11,8 @@ const request = axios.create({
 // 请求拦截器
 request.interceptors.request.use(
   (config) => {
-    // 可在此注入 token 等
+    // 不需要携带 token 白名单
+    const whilteList = ['']
     return config
   },
   (error) => {
