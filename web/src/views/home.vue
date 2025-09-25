@@ -179,7 +179,7 @@ const features: Ref<Array<featureType>> = ref([
   },
   {
     id: 2,
-    roleName: '肥嘟嘟左卫门',
+    roleName: '肥嘟嘟',
     background: feidudu,
   },
   {
@@ -202,24 +202,29 @@ const handleSearch = () => {
 }
 
 const handleFeatureClick = (feature: any) => {
-  // ElMessage.info(`点击了: ${feature.roleName}`)
+  // 直接跳转到对话页面，不需要登录验证
   const token = localStorage.getItem('token')
+  let userid = 'guest' // 默认访客ID
 
-  // 如果已经登陆，直接跳转对话页面
+  // 如果已经登录，使用真实用户ID
   if (token) {
-    // 如果 token 存在，则 userInfo 一定存在
-    const userInfoStr = localStorage.getItem('userInfo')!
-    const userInfo: UserInfo = JSON.parse(userInfoStr)
-
-    router.push({
-      path: '/conversation',
-      query: {
-        userid: userInfo.id,
-        robotRoleName: feature.roleName,
-      },
-    })
+    try {
+      const userInfoStr = localStorage.getItem('userInfo')!
+      const userInfo: UserInfo = JSON.parse(userInfoStr)
+      userid = userInfo.id.toString()
+    } catch (error) {
+      console.warn('解析用户信息失败，使用访客模式')
+    }
   }
-  // 这里可以根据不同的功能跳转到不同页面或执行不同操作
+
+  // 跳转到对话页面
+  router.push({
+    path: '/conversation',
+    query: {
+      userid: userid,
+      robotRoleName: feature.roleName,
+    },
+  })
 }
 
 const handleLoginSuccess = () => {
