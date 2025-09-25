@@ -20,11 +20,6 @@ export const login = (data: Login): Promise<ApiResponse> => {
   return request.post('/user/login', data)
 }
 
-// 注册
-// export const register = (data: RegisterPayload) => {
-//   return request.post('/user/register', data)
-// }
-
 // 登出
 export const logout = (): Promise<ApiResponse> => {
   return request.delete('/user')

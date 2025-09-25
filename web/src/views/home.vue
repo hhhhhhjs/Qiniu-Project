@@ -1,28 +1,40 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
     <!-- 顶部导航栏 -->
-    <header class="flex justify-between items-center px-6 py-2 bg-white/80 backdrop-blur-sm border-b border-gray-200/50">
+    <header
+      class="flex justify-between items-center px-6 py-2 bg-white/80 backdrop-blur-sm border-b border-gray-200/50"
+    >
       <div class="w-20 h-20">
-        <img src="@/assets/images/yuling.png" alt="logo">
+        <img src="@/assets/images/yuling.png" alt="logo" />
       </div>
 
       <div class="flex items-center space-x-4">
-        <el-button text class="text-gray-600 hover:text-gray-800">帮助</el-button>
+        <el-button text class="text-gray-600 hover:text-gray-800"
+          >帮助</el-button
+        >
         <el-button type="primary" @click="handleLogin">登录</el-button>
       </div>
     </header>
 
     <!-- 主要内容区域 -->
-    <main class="flex flex-col items-center justify-center px-6 ">
+    <main class="flex flex-col items-center justify-center px-6">
       <!-- 欢迎标题 -->
       <div class="text-center mb-12">
         <div class="meteor-frame inline-block px-10 py-6 rounded-full relative">
           <span class="meteor-border"></span>
           <h1 class="m-0">
-            <span class="meteor-content text-5xl font-bold text-gray-800 leading-tight inline-block">
+            <span
+              class="meteor-content text-5xl font-bold text-gray-800 leading-tight inline-block"
+            >
               你好，我是
-              <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">语灵</span>
-              你的<span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">智能角色扮演者</span>
+              <span
+                class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+                >语灵</span
+              >
+              你的<span
+                class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+                >智能角色扮演者</span
+              >
             </span>
           </h1>
         </div>
@@ -43,8 +55,19 @@
           >
             <template #suffix>
               <div class="flex items-center space-x-2 pr-2">
-                <el-button :icon="Microphone" circle size="small" class="voice-btn" />
-                <el-button :icon="Search" type="primary" circle size="small" @click="handleSearch" />
+                <el-button
+                  :icon="Microphone"
+                  circle
+                  size="small"
+                  class="voice-btn"
+                />
+                <el-button
+                  :icon="Search"
+                  type="primary"
+                  circle
+                  size="small"
+                  @click="handleSearch"
+                />
               </div>
             </template>
           </el-input>
@@ -52,17 +75,25 @@
       </div>
 
       <!-- 功能卡片 -->
-      <div class="grid grid-cols-3 md:grid-cols-3 gap-10 w-[45%] max-w-4xl mb-16">
+      <div
+        class="grid grid-cols-3 md:grid-cols-3 gap-10 w-[45%] max-w-4xl mb-16"
+      >
         <el-card
-        v-for="feature in features"
-        :key="feature.id"
-        class="phone-card cursor-pointer hover:shadow-lg transition-shadow"
-        @click="handleFeatureClick(feature)"
-        :body-style="{ padding: '0' }"
-        shadow="hover"
+          v-for="feature in features"
+          :key="feature.id"
+          class="phone-card cursor-pointer hover:shadow-lg transition-shadow"
+          @click="handleFeatureClick(feature)"
+          :body-style="{ padding: '0' }"
+          shadow="hover"
         >
-          <div class="bg-[#0B0B0C] rounded-2xl overflow-hidden h-80 w-full cursor-pointer">
-            <img :src="feature.background" :alt="feature.roleName" class="w-full h-full object-cover">
+          <div
+            class="bg-[#0B0B0C] rounded-2xl overflow-hidden h-80 w-full cursor-pointer"
+          >
+            <img
+              :src="feature.background"
+              :alt="feature.roleName"
+              class="w-full h-full object-cover"
+            />
           </div>
         </el-card>
       </div>
@@ -84,19 +115,21 @@
     >
       <div class="flex h-[400px]">
         <!-- 左侧介绍区域 -->
-        <div class="w-1/2 p-8 flex flex-col justify-center items-center rounded-l-lg">
-          <img src="@/assets/images/yuling.png" alt="logo">
+        <div
+          class="w-1/2 p-8 flex flex-col justify-center items-center rounded-l-lg"
+        >
+          <img src="@/assets/images/yuling.png" alt="logo" />
         </div>
 
         <!-- 右侧登录/注册表单 -->
         <div class="w-1/2 bg-white rounded-r-lg">
           <KeepAlive>
             <component
-            :is="currentComponent"
-            @login-success="handleLoginSuccess"
-            @register-click="handleRegister"
-            @register-success="handleRegisterSuccess"
-            @login-click="handleLogin"
+              :is="currentComponent"
+              @login-success="handleLoginSuccess"
+              @register-click="handleRegister"
+              @register-success="handleRegisterSuccess"
+              @login-click="handleLogin"
             ></component>
           </KeepAlive>
         </div>
@@ -109,28 +142,27 @@
 import { Ref, ref, shallowRef } from 'vue'
 import type { Component } from 'vue'
 import { ElMessage } from 'element-plus'
-import {
-  Search,
-  Microphone,
-  ChatDotRound,
-  EditPen,
-  Document,
-  PieChart,
-  Download
-} from '@element-plus/icons-vue'
+import { Search, Microphone } from '@element-plus/icons-vue'
 import LoginForm from '@/components/user/LoginForm.vue'
+import { useRouter } from 'vue-router'
 // 导入图片
 import jixiaomeiImg from '@/assets/images/roles/jixiaomei.jpg'
 import feidudu from '@/assets/images/roles/肥嘟嘟左卫门.jpg'
 import labixx from '@/assets/images/roles/image.png'
 import RegisterForm from '@/components/user/RegisterForm.vue'
-import Login from './user/login.vue'
 
+interface UserInfo {
+  id: string | number
+  email: string
+  name: string
+  phone: string | number
+}
 
 // 响应式数据
 const showLoginDialog = ref<boolean>(false)
 const searchQuery = ref('')
 const currentComponent = shallowRef<Component>(LoginForm)
+const router = useRouter()
 
 interface featureType {
   id: number
@@ -139,22 +171,22 @@ interface featureType {
 }
 
 // 功能卡片数据
-const features:Ref<Array<featureType>> = ref([
+const features: Ref<Array<featureType>> = ref([
   {
     id: 1,
     roleName: '集小美',
-    background: jixiaomeiImg
+    background: jixiaomeiImg,
   },
   {
     id: 2,
     roleName: '肥嘟嘟左卫门',
-    background: feidudu
+    background: feidudu,
   },
   {
     id: 3,
     roleName: '拉比XX',
-    background: labixx
-  }
+    background: labixx,
+  },
 ])
 
 // 方法
@@ -170,7 +202,23 @@ const handleSearch = () => {
 }
 
 const handleFeatureClick = (feature: any) => {
-  ElMessage.info(`点击了: ${feature.roleName}`)
+  // ElMessage.info(`点击了: ${feature.roleName}`)
+  const token = localStorage.getItem('token')
+
+  // 如果已经登陆，直接跳转对话页面
+  if (token) {
+    // 如果 token 存在，则 userInfo 一定存在
+    const userInfoStr = localStorage.getItem('userInfo')!
+    const userInfo: UserInfo = JSON.parse(userInfoStr)
+
+    router.push({
+      path: '/conversation',
+      query: {
+        userid: userInfo.id,
+        robotRoleName: feature.roleName,
+      },
+    })
+  }
   // 这里可以根据不同的功能跳转到不同页面或执行不同操作
 }
 
@@ -180,31 +228,27 @@ const handleLoginSuccess = () => {
 }
 
 const handleLogin = (message: string) => {
-    showLoginDialog.value = true
-    console.log('登录', message)
-    if(message) {
-      currentComponent.value = LoginForm
-    }
+  showLoginDialog.value = true
+  console.log('登录', message)
+  if (message) {
+    currentComponent.value = LoginForm
+  }
 }
 
-const handleRegister = (message:string) => {
-  if(message){
+const handleRegister = (message: string) => {
+  if (message) {
     currentComponent.value = RegisterForm
   }
 }
 
-const handleRegisterSuccess = (value:string) => {
-  if(value) {
+const handleRegisterSuccess = (value: string) => {
+  if (value) {
     currentComponent.value = LoginForm
   }
 }
 </script>
 
 <style scoped>
-
-:deep(.el-dialog) {
-
-}
 .search-input :deep(.el-input__wrapper) {
   border-radius: 24px;
   padding: 12px 20px;
@@ -251,9 +295,14 @@ const handleRegisterSuccess = (value:string) => {
   transform: translateY(-2px);
 }
 
-.phone-card { border: none; background: transparent; }
-.phone-card :deep(.el-card__body) { padding: 0; background: transparent; }
-
+.phone-card {
+  border: none;
+  background: transparent;
+}
+.phone-card :deep(.el-card__body) {
+  padding: 0;
+  background: transparent;
+}
 
 /* 响应式设计 */
 @media (max-width: 768px) {

@@ -11,7 +11,8 @@ const request = axios.create({
 // 请求拦截器
 request.interceptors.request.use(
   (config) => {
-    // 可在此注入 token 等
+    // 不需要携带 token 白名单
+    const whilteList = ['']
     return config
   },
   (error) => {
