@@ -5,24 +5,25 @@ import threading
 from typing import List, Optional, Dict, Any
 
 import numpy as np
-from fastapi import FastAPI, Body
+from fastapi import FastAPI, Body, HTTPException
 from pydantic import BaseModel
 from FlagEmbedding import BGEM3FlagModel
 import uvicorn
+from functools import lru_cache
 
 # ------------------- 可调参数 -------------------
-MODEL_PATH = os.getenv("BGE_MODEL_PATH", "/home/yaf/workspace/model_zoo/BAAI/bge-m3")
+MODEL_PATH = os.getenv("BGE_MODEL_PATH", "/home/wmy/workspace/model_zoo/BAAI/bge-m3")
 USE_FP16 = os.getenv("BGE_USE_FP16", "true").lower() == "true"
 MAX_LENGTH = int(os.getenv("BGE_MAX_LENGTH", "4096"))
 EMBED_DIM = 1024
 
 # 微批参数
 MAX_BATCH_SIZE = int(os.getenv("MAX_BATCH_SIZE", "64"))
-MAX_WAIT_MS = int(os.getenv("MAX_WAIT_MS", "8"))      # 等待聚合的最大毫秒
-WORKER_THREADS = int(os.getenv("WORKER_THREADS", "1"))  # 一般=1，避免多次占用同一GPU
+MAX_WAIT_MS = int(os.getenv("MAX_WAIT_MS", "8"))       # 等待聚合的最大毫秒
+WORKER_THREADS = int(os.getenv("WORKER_THREADS", "1")) # 一般=1，避免多次占用同一GPU
 # ------------------------------------------------
 
-app = FastAPI(title="BGE Embedding Service", version="1.0.0")
+app = FastAPI(title="BGE Embedding Service", version="1.1.0")
 
 class EmbedRequest(BaseModel):
     texts: List[str]
@@ -34,7 +35,23 @@ class EmbedResponse(BaseModel):
     dim: int
     elapsed_ms: int
 
-# 全局：模型与队列
+class RerankRequest(BaseModel):
+    query: str
+    documents: List[str]
+    top_k: Optional[int] = None
+    max_length: Optional[int] = None
+    normalize: bool = True  # 用于是否对向量做L2归一化后再计算cos相似
+
+class RerankItem(BaseModel):
+    index: int
+    document: str
+    score: float
+
+class RerankResponse(BaseModel):
+    results: List[RerankItem]
+    elapsed_ms: int
+
+# 全局：模型与锁
 bge = BGEM3FlagModel(
     MODEL_PATH,
     use_fp16=USE_FP16,
@@ -42,8 +59,7 @@ bge = BGEM3FlagModel(
 )
 print(f"[ok] BGE model loaded from {MODEL_PATH}")
 
-# 简单 LRU 缓存（可换成 Redis/Memcached）
-from functools import lru_cache
+MODEL_LOCK = threading.Lock()  # 统一串行化 GPU 推理，避免多线程竞争
 
 def _l2_normalize(arr: np.ndarray) -> np.ndarray:
     if arr.ndim == 1:
@@ -53,10 +69,9 @@ def _l2_normalize(arr: np.ndarray) -> np.ndarray:
 
 @lru_cache(maxsize=8192)
 def _cache_key(text: str, max_len: int) -> bytes:
-    # 只缓存 key；真正缓存内容由 lru_cache 包装函数完成
     return f"{max_len}::{text}".encode("utf-8")
 
-# 请求与结果的桥接
+# 请求与结果的桥接（/embed 用微批）
 class Task:
     def __init__(self, texts: List[str], max_length: int, normalize: bool):
         self.texts = texts
@@ -67,8 +82,20 @@ class Task:
 
 request_q: "queue.Queue[Task]" = queue.Queue(maxsize=2048)
 
+def _encode_texts(texts: List[str], max_length: int) -> np.ndarray:
+    """对外统一的编码函数：内部加锁保证与其他路由串行访问模型。"""
+    with MODEL_LOCK:
+        out = bge.encode(texts, batch_size=min(64, len(texts)), max_length=max_length)
+    dense = out["dense_vecs"]
+    if isinstance(dense, list):
+        dense = np.array(dense, dtype=np.float32)
+    else:
+        dense = dense.astype(np.float32)
+    return dense
+
 def worker_loop(worker_id: int):
     while True:
+        batch: List[Task] = []
         try:
             first: Task = request_q.get()
             batch = [first]
@@ -91,14 +118,10 @@ def worker_loop(worker_id: int):
                 max_lengths.extend([t.max_length] * len(t.texts))
                 norms.append(t.normalize)
 
-            # 这里用同一个 max_length（取批内最小/最大都可；我们取最小，避免截断差异）
             used_max_len = min(max_lengths) if max_lengths else MAX_LENGTH
-            out = bge.encode(all_texts, batch_size=min(64, len(all_texts)), max_length=used_max_len)
-            dense = out["dense_vecs"]
-            if isinstance(dense, list):
-                dense = np.array(dense, dtype=np.float32)
+            dense = _encode_texts(all_texts, used_max_len)
 
-            # 统一归一化选项：只要批里有任何任务要求 normalize=True，就归一化整体，再对不需要的原样返回也无妨
+            # 统一归一化：只要批里有任何任务要求 normalize=True，就对整体做归一化
             if any(norms):
                 dense = _l2_normalize(dense).astype(np.float32)
 
@@ -137,19 +160,17 @@ def embed(req: EmbedRequest):
 
     max_len = req.max_length or MAX_LENGTH
 
-    # 命中缓存的直接返回（逐条；也可以做批量缓存）
-    # 注意：这里为了演示简单，只缓存单条；更好的做法是自己实现批量缓存
+    # 单条用 LRU 缓存（演示简化），批量建议自行实现批缓存
     if len(req.texts) == 1:
         key = _cache_key(req.texts[0], max_len)
+
         @lru_cache(maxsize=8192)
         def _single_cached(_key: bytes, text: str, max_len: int, normalize: bool):
-            out = bge.encode([text], batch_size=1, max_length=max_len)
-            dense = out["dense_vecs"]
-            if isinstance(dense, list):
-                dense = np.array(dense, dtype=np.float32)
+            dense = _encode_texts([text], max_len)
             if normalize:
                 dense = _l2_normalize(dense).astype(np.float32)
             return dense[0].tolist()
+
         vec = _single_cached(key, req.texts[0], max_len, req.normalize)
         return EmbedResponse(embeddings=[vec], dim=EMBED_DIM, elapsed_ms=int((time.time()-t0)*1000))
 
@@ -160,6 +181,37 @@ def embed(req: EmbedRequest):
     if not ok or task.result is None:
         return EmbedResponse(embeddings=[], dim=EMBED_DIM, elapsed_ms=int((time.time()-t0)*1000))
     return EmbedResponse(embeddings=task.result, dim=EMBED_DIM, elapsed_ms=int((time.time()-t0)*1000))
+
+@app.post("/rerank", response_model=RerankResponse)
+def rerank(req: RerankRequest):
+    t0 = time.time()
+    if not req.query:
+        raise HTTPException(status_code=400, detail="query is empty")
+    if not req.documents:
+        return RerankResponse(results=[], elapsed_ms=int((time.time()-t0)*1000))
+
+    max_len = req.max_length or MAX_LENGTH
+
+    # 编码 query 与 documents
+    q_vec = _encode_texts([req.query], max_len)[0]  # (D,)
+    d_vecs = _encode_texts(req.documents, max_len)  # (N, D)
+
+    # 归一化 + 余弦相似度
+    if req.normalize:
+        q_vec = _l2_normalize(q_vec).astype(np.float32)[0]
+        d_vecs = _l2_normalize(d_vecs).astype(np.float32)
+
+    # 计算分数：cos = q · d
+    scores = (d_vecs @ q_vec.astype(np.float32))  # (N,)
+    idx = np.argsort(-scores)  # 降序
+    if req.top_k:
+        idx = idx[:req.top_k]
+
+    results = [
+        RerankItem(index=int(i), document=req.documents[int(i)], score=float(scores[int(i)]))
+        for i in idx
+    ]
+    return RerankResponse(results=results, elapsed_ms=int((time.time()-t0)*1000))
 
 if __name__ == "__main__":
     # 单进程单实例占用一张 GPU；多卡请起多个进程并设置 CUDA_VISIBLE_DEVICES 亲和
