@@ -19,7 +19,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   isActive: true,
   intensity: 0.8,
-  color: '#f3f4f6',
+  color: '#8b5cf6', // 紫色，匹配主题
   frequencies: () => [],
   useRealAudio: false
 })
@@ -250,14 +250,14 @@ function cleanup() {
   width: 100%;
   height: 120px;
   position: relative;
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  background: transparent;
+  border-radius: 16px;
 }
 
 .audio-spectrum canvas {
   display: block;
   width: 100% !important;
   height: 100% !important;
-  border-radius: 8px;
+  border-radius: 16px;
 }
 </style>

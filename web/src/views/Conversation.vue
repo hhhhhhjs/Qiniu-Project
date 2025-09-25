@@ -13,7 +13,7 @@
       <VoiceWave3D
         :is-active="isUserSpeaking || isAISpeaking"
         :intensity="waveIntensity"
-        :color="isUserSpeaking ? '#e5e7eb' : '#f3f4f6'"
+        :color="isUserSpeaking ? '#3b82f6' : '#8b5cf6'"
         :frequencies="audioFrequencies"
         :use-real-audio="useRealAudio"
       />
@@ -68,15 +68,17 @@ const {
   isVoiceActive
 } = useAudioManager()
 
-// 角色头像映射（后期可替换为真实图片）。若无图片则使用占位块。
-// import jixiaomeiImg from '@/assets/images/roles/jixiaomei.jpg'
-// import feiduduImg from '@/assets/images/roles/肥嘟嘟左卫门.jpg'
-// import labixxImg from '@/assets/images/roles/image.png'
+// 角色头像映射
+import jixiaomeiImg from '@/assets/images/roles/jixiaomei.jpg'
+import feiduduImg from '@/assets/images/roles/肥嘟嘟左卫门.jpg'
+import labixxImg from '@/assets/images/roles/image.png'
+
 const roleImages: Record<string, string> = {
-  // '集小美': jixiaomeiImg,
-  // '肥嘟嘟左卫门': feiduduImg,
-  // '拉比XX': labixxImg,
+  '集小美': jixiaomeiImg,
+  '肥嘟嘟': feiduduImg,
+  '拉比XX': labixxImg,
 }
+
 const avatarUrl = computed(() => roleImages[robotRoleName.value] || '')
 const roleInitials = computed(() => robotRoleName.value?.slice(0, 1) || '机')
 
@@ -114,6 +116,7 @@ watch(audioData, (newData) => {
 
 let timer: number | null = null
 onMounted(() => {
+
   // AI 说话状态模拟（可以根据实际 AI 回答状态来控制）
   timer = window.setInterval(() => {
     // 如果没有使用真实音频，则模拟 AI 说话
@@ -148,8 +151,8 @@ function handleHangup() {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  background: #000;
-  color: #fff;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+  color: #1e293b;
   width: 100%;
   height: 100vh;
   overflow: hidden;
@@ -168,27 +171,32 @@ function handleHangup() {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 12%;
+  border-radius: 50%;
   overflow: hidden;
-  box-shadow: 0 8px 30px rgba(255, 255, 255, 0.08);
-  border: 2px solid rgba(255,255,255,0.8);
+  box-shadow: 0 8px 30px rgba(59, 130, 246, 0.15);
+  border: 3px solid rgba(59, 130, 246, 0.3);
   z-index: 2;
   transition: transform .2s ease;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
 }
 .voice-avatar.speaking { animation: pulse 1.1s ease-in-out infinite; }
 .avatar-img { width: 100%; height: 100%; background-size: cover; background-position: center; }
 .avatar-placeholder {
   width: 100%; height: 100%; display:flex; align-items:center; justify-content:center;
-  font-size: 3rem; background: linear-gradient(135deg, #1f2937, #0b0b0b);
+  font-size: 3rem;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+  font-weight: bold;
 }
 .role-name {
   position: absolute; bottom: -2.2rem; left: 50%; transform: translateX(-50%);
-  font-size: 0.95rem; color: #c9c9c9;
+  font-size: 0.95rem; color: #64748b; font-weight: 500;
 }
 
 /* 多层涟漪 */
 .ripple-1, .ripple-2, .ripple-3 {
-  position: absolute; inset: 0; border-radius: 12%; border: 2px solid rgba(255,255,255,0.35);
+  position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(59, 130, 246, 0.4);
   transform: scale(1); opacity: 0; pointer-events: none; z-index: 1;
 }
 .ripple-1 { animation: ripple 2.3s ease-out infinite; }
@@ -205,6 +213,8 @@ function handleHangup() {
   max-width: 600px;
   height: 120px;
   z-index: 1;
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
 }
 
 .actions {
@@ -216,11 +226,16 @@ function handleHangup() {
 }
 .hangup-btn {
   width: 74px; height: 74px; border-radius: 50%; border: none; cursor: pointer;
-  color: #fff; background: radial-gradient(circle at 30% 30%, #ff6b6b, #d90429);
-  box-shadow: 0 10px 30px rgba(217,4,41,.35);
+  color: #fff;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
   transition: all 0.2s ease;
+  border: 2px solid rgba(255, 255, 255, 0.2);
 }
-.hangup-btn:hover { transform: translateY(-2px); }
+.hangup-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(239, 68, 68, 0.4);
+}
 .hangup-btn:active { transform: translateY(0); filter: brightness(.95); }
 
 @keyframes pulse { 0%{transform:scale(1)} 40%{transform:scale(1.03)} 70%{transform:scale(1)} 100%{transform:scale(1)} }
@@ -239,54 +254,70 @@ function handleHangup() {
 }
 
 .mic-btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 20px;
+  padding: 10px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 24px;
   font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(15px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .mic-btn.start {
-  background: rgba(34, 197, 94, 0.8);
+  background: linear-gradient(135deg, #10b981, #059669);
   color: white;
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
 .mic-btn.start:hover {
-  background: rgba(34, 197, 94, 1);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
 }
 
 .mic-btn.stop {
-  background: rgba(239, 68, 68, 0.8);
+  background: linear-gradient(135deg, #ef4444, #dc2626);
   color: white;
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
 .mic-btn.stop:hover {
-  background: rgba(239, 68, 68, 1);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
 }
 
 .mic-btn:disabled {
-  background: rgba(107, 114, 128, 0.5);
+  background: rgba(148, 163, 184, 0.6);
+  color: rgba(255, 255, 255, 0.7);
   cursor: not-allowed;
   transform: none;
+  border-color: rgba(148, 163, 184, 0.3);
 }
 
 .error-message {
   color: #ef4444;
   font-size: 12px;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 4px 8px;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
   max-width: 200px;
   text-align: right;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);
 }
 
 @media (max-width: 640px) {
   .avatar-area { width: 9.5rem; height: 9.5rem; margin-top: 10vh; }
-  .voice-wave-container { bottom: 100px; width: 95%; height: 160px; }
+  .voice-wave-container {
+    bottom: 100px;
+    width: 95%;
+    height: 160px;
+    background: rgba(255, 255, 255, 0.8);
+  }
 
   .mic-controls {
     top: 10px;
@@ -295,7 +326,7 @@ function handleHangup() {
 
   .mic-btn {
     font-size: 12px;
-    padding: 6px 12px;
+    padding: 8px 14px;
   }
 }
 </style>
