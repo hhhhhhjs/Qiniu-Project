@@ -137,6 +137,7 @@ const handleSubmit = async () => {
     if(res.success){
       localStorage.setItem('token', res.obj)
       ElMessage.success('登录成功！')
+      
       emit('login-success', 'loginSuccess')
     } else {
       ElMessage.error(res.msg || '登录失败')
