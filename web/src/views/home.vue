@@ -142,14 +142,16 @@
 import { Ref, ref, shallowRef } from 'vue'
 import type { Component } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Search, Microphone } from '@element-plus/icons-vue'
+import { Search, Microphone, Message } from '@element-plus/icons-vue'
 import LoginForm from '@/components/user/LoginForm.vue'
 import { useRouter } from 'vue-router'
 // 导入图片
 import jixiaomeiImg from '@/assets/images/roles/jixiaomei.jpg'
 import feidudu from '@/assets/images/roles/肥嘟嘟左卫门.jpg'
 import labixx from '@/assets/images/roles/image.png'
+// 组件
 import RegisterForm from '@/components/user/RegisterForm.vue'
+import * as lodash from 'lodash'
 
 interface UserInfo {
   id: string | number
@@ -184,7 +186,7 @@ const features: Ref<Array<featureType>> = ref([
   },
   {
     id: 3,
-    roleName: '拉比XX',
+    roleName: '蜡笔小新',
     background: labixx,
   },
 ])
@@ -192,16 +194,33 @@ const features: Ref<Array<featureType>> = ref([
 // 方法
 const handleSearch = () => {
   if (!searchQuery.value.trim()) {
-    ElMessage.warning('请输入你的问题')
+    ElMessage.warning('请输入你想要扮演的角色')
     return
   }
-
-  // 这里可以处理搜索逻辑
-  ElMessage.info(`正在处理: ${searchQuery.value}`)
-  // 可以跳转到聊天页面或处理搜索
+  const token = localStorage.getItem('token')
+  try {
+    // 可以跳转到聊天页面或处理搜索
+    if (token) {
+      router.push({
+        path: '/conversation',
+        query: {
+          userid: 1, // TODO: 修改为真实用户 id
+          robotRoleName: searchQuery.value,
+        },
+      })
+    } else {
+      ElMessage({
+        message: '哎呀，登录后再来试试吧(•̀⌓• )~',
+        type: 'warning',
+      })
+    }
+  } catch (error) {
+    console.error('跳转到聊天页面失败:', error)
+  }
 }
 
-const handleFeatureClick = (feature: any) => {
+// 原始的点击处理函数
+const handleFeatureClickOriginal = (feature: any) => {
   // 直接跳转到对话页面，不需要登录验证
   const token = localStorage.getItem('token')
   let userid = 'guest' // 默认访客ID
@@ -209,23 +228,30 @@ const handleFeatureClick = (feature: any) => {
   // 如果已经登录，使用真实用户ID
   if (token) {
     try {
-      const userInfoStr = localStorage.getItem('userInfo')!
-      const userInfo: UserInfo = JSON.parse(userInfoStr)
-      userid = userInfo.id.toString()
+      // const userInfoStr = localStorage.getItem('userInfo')!
+      // const userInfo: UserInfo = JSON.parse(userInfoStr)
+      // userid = userInfo.id.toString()
+      // 跳转到对话页面
+      router.push({
+        path: '/conversation',
+        query: {
+          userid: 1, // TODO: 修改为真实用户 id
+          robotRoleName: feature.roleName,
+        },
+      })
     } catch (error) {
       console.warn('解析用户信息失败，使用访客模式')
     }
+  } else {
+    ElMessage({
+      message: '哎呀，登录后再来试试吧(•̀⌓• )~',
+      type: 'warning',
+    })
   }
-
-  // 跳转到对话页面
-  router.push({
-    path: '/conversation',
-    query: {
-      userid: userid,
-      robotRoleName: feature.roleName,
-    },
-  })
 }
+
+// 使用 lodash 防抖包装的功能点击处理函数
+const handleFeatureClick = lodash.debounce(handleFeatureClickOriginal, 300)
 
 const handleLoginSuccess = () => {
   showLoginDialog.value = false
