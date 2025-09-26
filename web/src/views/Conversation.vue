@@ -76,7 +76,7 @@ import labixxImg from '@/assets/images/roles/image.png'
 const roleImages: Record<string, string> = {
   '集小美': jixiaomeiImg,
   '肥嘟嘟': feiduduImg,
-  '拉比XX': labixxImg,
+  '蜡笔小新': labixxImg,
 }
 
 const avatarUrl = computed(() => roleImages[robotRoleName.value] || '')

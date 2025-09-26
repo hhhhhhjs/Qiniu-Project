@@ -11,6 +11,9 @@ dependencies:
   '@tailwindcss/vite':
     specifier: ^4.1.13
     version: 4.1.13(vite@7.1.6)
+  '@types/lodash':
+    specifier: ^4.17.20
+    version: 4.17.20
   '@types/three':
     specifier: ^0.180.0
     version: 0.180.0
@@ -23,6 +26,9 @@ dependencies:
   glob:
     specifier: ^11.0.3
     version: 11.0.3
+  lodash:
+    specifier: ^4.17.21
+    version: 4.17.21
   mime-types:
     specifier: ^3.0.1
     version: 3.0.1

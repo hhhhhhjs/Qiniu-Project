@@ -12,10 +12,12 @@
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
     "@tailwindcss/vite": "^4.1.13",
+    "@types/lodash": "^4.17.20",
     "@types/three": "^0.180.0",
     "axios": "^1.12.2",
     "element-plus": "^2.11.3",
     "glob": "^11.0.3",
+    "lodash": "^4.17.21",
     "mime-types": "^3.0.1",
     "qiniu": "^7.14.0",
     "tailwindcss": "^4.1.13",
