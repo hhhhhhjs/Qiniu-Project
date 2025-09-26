@@ -101,7 +101,7 @@ const inputText = ref('')
 const messages = ref<ChatMessage[]>([])
 const messagesContainer = ref<HTMLElement>()
 
-// 方法
+// 函数方法
 const sendMessage = () => {
   if (!inputText.value.trim() || props.isProcessing) return
   

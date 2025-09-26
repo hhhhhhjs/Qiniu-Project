@@ -20,26 +20,6 @@
           :use-real-audio="useRealAudio"
         />
       </div>
-
-      <!-- 麦克风控制按钮 -->
-      <div class="mic-controls">
-        <button
-          v-if="!isRecording"
-          @click="startMicrophone"
-          class="mic-btn start"
-          :disabled="!!audioError"
-        >
-          🎤 启用麦克风
-        </button>
-        <button
-          v-else
-          @click="stopMicrophone"
-          class="mic-btn stop"
-        >
-          🔇 关闭麦克风
-        </button>
-        <div v-if="audioError" class="error-message">{{ audioError }}</div>
-      </div>
     </div>
 
     <!-- 下半部分：聊天面板 -->
