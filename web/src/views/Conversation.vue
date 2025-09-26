@@ -34,22 +34,18 @@
       />
     </div>
 
-    <!-- 挂断按钮 -->
-    <div class="actions">
-      <el-button type="danger" circle class="hangup-btn" @click="handleHangup">挂断</el-button>
-    </div>
+
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import VoiceWave3D from '@/components/VoiceWave3D.vue'
 import VoiceChatPanel from '@/components/VoiceChatPanel.vue'
 import { useAudioManager } from '@/composables/useAudioManager'
 
 const route = useRoute()
-const router = useRouter()
 
 const robotRoleName = computed(() => (route.query.robotRoleName as string) || 'AI 助手')
 
@@ -57,12 +53,8 @@ const robotRoleName = computed(() => (route.query.robotRoleName as string) || 'A
 const {
   isRecording,
   audioData,
-  error: audioError,
   startRecording,
   stopRecording,
-  getVolumeLevel,
-  getFrequencies,
-  isVoiceActive
 } = useAudioManager()
 
 // 角色头像映射
@@ -231,10 +223,7 @@ onUnmounted(() => {
   stopMicrophone() // 确保清理麦克风资源
 })
 
-function handleHangup() {
-  stopMicrophone()
-  router.back()
-}
+
 </script>
 
 <style scoped>
@@ -325,25 +314,7 @@ function handleHangup() {
   border-radius: 16px;
 }
 
-.actions {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-}
-.hangup-btn {
-  width: 74px; height: 74px;
-  color: #fff;
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
-  transition: all 0.2s ease;
-}
-.hangup-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 35px rgba(239, 68, 68, 0.4);
-}
-.hangup-btn:active { transform: translateY(0); filter: brightness(.95); }
+
 
 @keyframes pulse { 0%{transform:scale(1)} 40%{transform:scale(1.03)} 70%{transform:scale(1)} 100%{transform:scale(1)} }
 @keyframes ripple { 0%{opacity:0; transform:scale(1)} 30%{opacity:.8} 100%{opacity:0; transform:scale(1.4)} }
@@ -449,13 +420,6 @@ function handleHangup() {
     padding: 8px 14px;
   }
 
-  .actions {
-    bottom: 10px;
-  }
 
-  .hangup-btn {
-    width: 60px;
-    height: 60px;
-  }
 }
 </style>
