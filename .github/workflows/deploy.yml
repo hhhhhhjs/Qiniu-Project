@@ -36,7 +36,12 @@ jobs:
         working-directory: ./web
         run: pnpm build
 
-      # 6. 上传 dist 到七牛云
+      # 6. 复制 404 页面为 index.html
+      - name: Copy 404
+        working-directory: ./web
+        run: cp dist/index.html dist/errno-404
+
+      # 7. 上传 dist 到七牛云
       - name: Upload to Qiniu
         working-directory: ./web
         run: node upload.cjs
