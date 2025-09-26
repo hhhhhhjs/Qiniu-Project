@@ -1,46 +1,62 @@
 <template>
   <div class="conversation-container">
-    <div class="avatar-area">
-      <div class="voice-avatar" :class="{ speaking: isAISpeaking }">
-        <div v-if="avatarUrl" class="avatar-img" :style="{ backgroundImage: `url(${avatarUrl})` }" />
-        <div v-else class="avatar-placeholder">{{ roleInitials }}</div>
+    <!-- 上半部分：语音对话区域 -->
+    <div class="voice-section">
+      <div class="avatar-area">
+        <div class="voice-avatar" :class="{ speaking: isAISpeaking }">
+          <div v-if="avatarUrl" class="avatar-img" :style="{ backgroundImage: `url(${avatarUrl})` }" />
+          <div v-else class="avatar-placeholder">{{ roleInitials }}</div>
+        </div>
+        <div v-for="i in 3" :key="i" :class="`ripple-${i}`" />
+        <div class="role-name">{{ robotRoleName }}</div>
       </div>
-      <div v-for="i in 3" :key="i" :class="`ripple-${i}`" />
-      <div class="role-name">{{ robotRoleName }}</div>
+
+      <div class="voice-wave-container">
+        <VoiceWave3D
+          :is-active="isUserSpeaking || isAISpeaking"
+          :intensity="waveIntensity"
+          :color="isUserSpeaking ? '#3b82f6' : '#8b5cf6'"
+          :frequencies="audioFrequencies"
+          :use-real-audio="useRealAudio"
+        />
+      </div>
+
+      <!-- 麦克风控制按钮 -->
+      <div class="mic-controls">
+        <button
+          v-if="!isRecording"
+          @click="startMicrophone"
+          class="mic-btn start"
+          :disabled="!!audioError"
+        >
+          🎤 启用麦克风
+        </button>
+        <button
+          v-else
+          @click="stopMicrophone"
+          class="mic-btn stop"
+        >
+          🔇 关闭麦克风
+        </button>
+        <div v-if="audioError" class="error-message">{{ audioError }}</div>
+      </div>
     </div>
 
-    <div class="voice-wave-container">
-      <VoiceWave3D
-        :is-active="isUserSpeaking || isAISpeaking"
-        :intensity="waveIntensity"
-        :color="isUserSpeaking ? '#3b82f6' : '#8b5cf6'"
-        :frequencies="audioFrequencies"
-        :use-real-audio="useRealAudio"
+    <!-- 下半部分：聊天面板 -->
+    <div class="chat-section">
+      <VoiceChatPanel
+        ref="chatPanelRef"
+        :is-listening="isRecording"
+        :current-transcript="currentTranscript"
+        :is-processing="isProcessingMessage"
+        @send-message="handleSendMessage"
+        @toggle-voice="handleToggleVoice"
       />
     </div>
 
-    <!-- 麦克风控制按钮 -->
-    <div class="mic-controls">
-      <button
-        v-if="!isRecording"
-        @click="startMicrophone"
-        class="mic-btn start"
-        :disabled="!!audioError"
-      >
-        🎤 启用麦克风
-      </button>
-      <button
-        v-else
-        @click="stopMicrophone"
-        class="mic-btn stop"
-      >
-        🔇 关闭麦克风
-      </button>
-      <div v-if="audioError" class="error-message">{{ audioError }}</div>
-    </div>
-
+    <!-- 挂断按钮 -->
     <div class="actions">
-      <button class="hangup-btn" @click="handleHangup">挂断</button>
+      <el-button type="danger" circle class="hangup-btn" @click="handleHangup">挂断</el-button>
     </div>
   </div>
 </template>
@@ -49,6 +65,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import VoiceWave3D from '@/components/VoiceWave3D.vue'
+import VoiceChatPanel from '@/components/VoiceChatPanel.vue'
 import { useAudioManager } from '@/composables/useAudioManager'
 
 const route = useRoute()
@@ -89,6 +106,16 @@ const waveIntensity = ref(0.5)
 const useRealAudio = ref(false)
 const audioFrequencies = ref<number[]>([])
 
+// 聊天相关状态
+const currentTranscript = ref('')
+const isProcessingMessage = ref(false)
+const chatPanelRef = ref<InstanceType<typeof VoiceChatPanel>>()
+
+// 语音转文字相关状态
+let transcriptionTimer: number | null = null
+let lastTranscriptTime = 0
+const transcriptionDelay = 1000 // 1秒延迟发送消息
+
 // 麦克风控制方法
 async function startMicrophone() {
   try {
@@ -103,6 +130,45 @@ function stopMicrophone() {
   stopRecording()
   useRealAudio.value = false
   audioFrequencies.value = []
+  currentTranscript.value = ''
+
+  // 清理转录定时器
+  if (transcriptionTimer) {
+    clearTimeout(transcriptionTimer)
+    transcriptionTimer = null
+  }
+}
+
+// 聊天相关方法
+const handleSendMessage = async (content: string) => {
+  isProcessingMessage.value = true
+
+  try {
+    // 这里可以调用 AI API 获取回复
+    // 模拟 AI 回复
+    setTimeout(() => {
+      const aiResponse = `收到你的消息："${content}"，我正在思考如何回复...`
+      chatPanelRef.value?.addAIMessage(aiResponse)
+      isProcessingMessage.value = false
+
+      // 模拟 AI 语音回复
+      isAISpeaking.value = true
+      setTimeout(() => {
+        isAISpeaking.value = false
+      }, 3000)
+    }, 1000)
+  } catch (error) {
+    console.error('发送消息失败:', error)
+    isProcessingMessage.value = false
+  }
+}
+
+const handleToggleVoice = () => {
+  if (isRecording.value) {
+    stopMicrophone()
+  } else {
+    startMicrophone()
+  }
 }
 
 // 监听音频数据变化
@@ -111,8 +177,54 @@ watch(audioData, (newData) => {
     isUserSpeaking.value = newData.isActive
     waveIntensity.value = Math.max(0.3, newData.volume * 2)
     audioFrequencies.value = newData.frequencies
+
+    // 处理语音转文字
+    handleVoiceTranscription(newData.isActive)
   }
 }, { deep: true })
+
+// 处理语音转文字逻辑
+const handleVoiceTranscription = (isActive: boolean) => {
+  if (isActive && isRecording.value) {
+    // 用户正在说话，更新实时转录
+    if (Date.now() - lastTranscriptTime > 500) { // 500ms 更新一次
+      simulateVoiceTranscription()
+      lastTranscriptTime = Date.now()
+    }
+
+    // 清除之前的定时器
+    if (transcriptionTimer) {
+      clearTimeout(transcriptionTimer)
+    }
+  } else if (!isActive && currentTranscript.value.trim()) {
+    // 用户停止说话，延迟发送消息
+    if (transcriptionTimer) {
+      clearTimeout(transcriptionTimer)
+    }
+
+    transcriptionTimer = window.setTimeout(() => {
+      if (currentTranscript.value.trim()) {
+        handleSendMessage(currentTranscript.value.trim())
+        currentTranscript.value = ''
+      }
+    }, transcriptionDelay)
+  }
+}
+
+// 模拟语音转文字
+const simulateVoiceTranscription = () => {
+  const sampleTexts = [
+    '你好',
+    '你好，我想',
+    '你好，我想问一下',
+    '你好，我想问一下关于',
+    '你好，我想问一下关于天气的',
+    '你好，我想问一下关于天气的情况'
+  ]
+
+  const randomIndex = Math.floor(Math.random() * sampleTexts.length)
+  currentTranscript.value = sampleTexts[randomIndex]
+}
 
 let timer: number | null = null
 onMounted(() => {
@@ -135,6 +247,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (timer) window.clearInterval(timer)
+  if (transcriptionTimer) clearTimeout(transcriptionTimer)
   stopMicrophone() // 确保清理麦克风资源
 })
 
@@ -149,8 +262,6 @@ function handleHangup() {
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
   color: #1e293b;
   width: 100%;
@@ -158,11 +269,30 @@ function handleHangup() {
   overflow: hidden;
 }
 
+/* 上半部分：语音对话区域 */
+.voice-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 60vh;
+  flex-shrink: 0;
+}
+
+/* 下半部分：聊天面板 */
+.chat-section {
+  position: relative;
+  height: 35vh;
+  margin: 0 20px 20px 20px;
+  flex-shrink: 0;
+}
+
 .avatar-area {
   position: relative;
-  margin-top: 12vh;
-  width: 11rem;
-  height: 11rem;
+  margin-top: 8vh;
+  width: 10rem;
+  height: 10rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -205,13 +335,11 @@ function handleHangup() {
 
 /* 3D 频谱容器 */
 .voice-wave-container {
-  position: absolute;
-  bottom: 140px;
-  left: 50%;
-  transform: translateX(-50%);
+  position: relative;
+  margin-top: 3vh;
   width: 85%;
   max-width: 600px;
-  height: 120px;
+  height: 100px;
   z-index: 1;
   backdrop-filter: blur(10px);
   border-radius: 16px;
@@ -219,18 +347,17 @@ function handleHangup() {
 
 .actions {
   position: absolute;
-  bottom: 40px;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
 }
 .hangup-btn {
-  width: 74px; height: 74px; border-radius: 50%; border: none; cursor: pointer;
+  width: 74px; height: 74px;
   color: #fff;
   background: linear-gradient(135deg, #ef4444, #dc2626);
   box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
   transition: all 0.2s ease;
-  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 .hangup-btn:hover {
   transform: translateY(-2px);
@@ -311,12 +438,25 @@ function handleHangup() {
 }
 
 @media (max-width: 640px) {
-  .avatar-area { width: 9.5rem; height: 9.5rem; margin-top: 10vh; }
+  .voice-section {
+    height: 50vh;
+  }
+
+  .chat-section {
+    height: 45vh;
+    margin: 0 10px 10px 10px;
+  }
+
+  .avatar-area {
+    width: 8rem;
+    height: 8rem;
+    margin-top: 6vh;
+  }
+
   .voice-wave-container {
-    bottom: 100px;
     width: 95%;
-    height: 160px;
-    background: rgba(255, 255, 255, 0.8);
+    height: 80px;
+    margin-top: 2vh;
   }
 
   .mic-controls {
@@ -327,6 +467,15 @@ function handleHangup() {
   .mic-btn {
     font-size: 12px;
     padding: 8px 14px;
+  }
+
+  .actions {
+    bottom: 10px;
+  }
+
+  .hangup-btn {
+    width: 60px;
+    height: 60px;
   }
 }
 </style>
