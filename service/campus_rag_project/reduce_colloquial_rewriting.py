@@ -32,7 +32,7 @@ class NormalizeRequest(BaseModel):
     preserve_entities: List[str] = Field(default_factory=lambda: ["PERSON","ORG","DATE","TIME","CARDINAL"])
     custom_glossary: Dict[str, str] = Field(default_factory=dict)
     redact_pii: bool = False
-    max_tokens: int = 512
+    max_tokens: int = 64
     return_diff: bool = True
     trace: bool = False
 
@@ -46,7 +46,7 @@ class NormalizeResponse(BaseModel):
     cleaned_text: str
     changes: Optional[List[ChangeItem]] = None
     usage: Dict[str, Any]
-    model: str = "glm-4.5-flash"
+    model: str = "glm-4.5"
     warnings: List[str] = Field(default_factory=list)
     trace: Optional[Dict[str, Any]] = None
 
@@ -122,11 +122,14 @@ def normalize(req: NormalizeRequest):
 
     try:
         resp = client.chat.completions.create(
-            model="glm-4.5-flash",
+            model="glm-4.5",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": build_user_prompt(req)}
             ],
+            thinking={
+                "type": "disabled",    # 启用深度思考模式
+            },
             temperature=0.2,
             top_p=0.9,
             max_tokens=req.max_tokens,
@@ -174,7 +177,7 @@ def normalize(req: NormalizeRequest):
             "total_tokens": total_tokens,
             "latency_ms": latency_ms
         },
-        model="glm-4.5-flash",
+        model="glm-4.5",
         warnings=warnings,
         trace=trace
     )

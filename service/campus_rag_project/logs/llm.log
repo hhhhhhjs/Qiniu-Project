@@ -1,0 +1,38 @@
+nohup: 忽略输入
+INFO:     Started server process [398898]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:9003 (Press CTRL+C to quit)
+2025-09-26 17:22:30,731 [INFO] [TIMING] method=POST path=/rag/stream total=1.718ms
+INFO:     127.0.0.1:43716 - "POST /rag/stream HTTP/1.1" 200 OK
+2025-09-26 17:22:31,194 [INFO] HTTP Request: POST https://open.bigmodel.cn/api/paas/v4/chat/completions "HTTP/1.1 200 OK"
+2025-09-26 17:24:22,517 [INFO] [TIMING] method=POST path=/rag/stream total=1.888ms
+INFO:     127.0.0.1:59824 - "POST /rag/stream HTTP/1.1" 200 OK
+2025-09-26 17:24:23,207 [INFO] HTTP Request: POST https://open.bigmodel.cn/api/paas/v4/chat/completions "HTTP/1.1 200 OK"
+2025-09-26 17:28:43,259 [INFO] [TIMING] method=POST path=/rag/stream total=1.18ms
+INFO:     127.0.0.1:54578 - "POST /rag/stream HTTP/1.1" 200 OK
+2025-09-26 17:28:43,871 [INFO] HTTP Request: POST https://open.bigmodel.cn/api/paas/v4/chat/completions "HTTP/1.1 200 OK"
+2025-09-26 17:29:00,759 [INFO] [TIMING] method=POST path=/rag/stream total=1.834ms
+INFO:     127.0.0.1:46816 - "POST /rag/stream HTTP/1.1" 200 OK
+2025-09-26 17:29:01,247 [INFO] HTTP Request: POST https://open.bigmodel.cn/api/paas/v4/chat/completions "HTTP/1.1 200 OK"
+2025-09-26 17:35:08,665 [INFO] [TIMING] method=POST path=/rag/stream total=0.973ms
+INFO:     127.0.0.1:37918 - "POST /rag/stream HTTP/1.1" 200 OK
+2025-09-26 17:35:09,221 [INFO] HTTP Request: POST https://open.bigmodel.cn/api/paas/v4/chat/completions "HTTP/1.1 200 OK"
+2025-09-26 17:36:52,587 [INFO] [TIMING] method=POST path=/rag/stream total=2.106ms
+INFO:     127.0.0.1:54200 - "POST /rag/stream HTTP/1.1" 200 OK
+2025-09-26 17:36:53,311 [INFO] HTTP Request: POST https://open.bigmodel.cn/api/paas/v4/chat/completions "HTTP/1.1 200 OK"
+2025-09-26 17:38:56,788 [INFO] [TIMING] method=POST path=/rag/stream total=1.997ms
+INFO:     127.0.0.1:53232 - "POST /rag/stream HTTP/1.1" 200 OK
+2025-09-26 17:38:57,430 [INFO] HTTP Request: POST https://open.bigmodel.cn/api/paas/v4/chat/completions "HTTP/1.1 200 OK"
+2025-09-26 17:40:02,199 [INFO] [TIMING] method=POST path=/rag/stream total=0.936ms
+INFO:     127.0.0.1:39924 - "POST /rag/stream HTTP/1.1" 200 OK
+2025-09-26 17:40:02,756 [INFO] HTTP Request: POST https://open.bigmodel.cn/api/paas/v4/chat/completions "HTTP/1.1 200 OK"
+2025-09-26 17:40:43,628 [INFO] [TIMING] method=POST path=/rag/stream total=1.904ms
+INFO:     127.0.0.1:59824 - "POST /rag/stream HTTP/1.1" 200 OK
+2025-09-26 17:40:44,269 [INFO] HTTP Request: POST https://open.bigmodel.cn/api/paas/v4/chat/completions "HTTP/1.1 200 OK"
+2025-09-26 17:41:04,221 [INFO] [TIMING] method=POST path=/rag/stream total=0.944ms
+INFO:     127.0.0.1:58690 - "POST /rag/stream HTTP/1.1" 200 OK
+2025-09-26 17:41:04,791 [INFO] HTTP Request: POST https://open.bigmodel.cn/api/paas/v4/chat/completions "HTTP/1.1 200 OK"
+2025-09-26 17:41:52,381 [INFO] [TIMING] method=POST path=/rag/stream total=1.384ms
+INFO:     127.0.0.1:35162 - "POST /rag/stream HTTP/1.1" 200 OK
+2025-09-26 17:41:52,972 [INFO] HTTP Request: POST https://open.bigmodel.cn/api/paas/v4/chat/completions "HTTP/1.1 200 OK"

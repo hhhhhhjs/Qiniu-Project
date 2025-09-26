@@ -1,0 +1,14 @@
+nohup: 忽略输入
+INFO:     Started server process [403520]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:9004 (Press CTRL+C to quit)
+INFO:     127.0.0.1:40772 - "POST /v1/workflow/stream HTTP/1.1" 200 OK
+[WORKFLOW-STREAM] total=8558ms | normalize=4511ms, recall=46ms, rerank=89ms, rag=3907ms | hits=5 retrieved_used=True
+INFO:     127.0.0.1:48312 - "POST /v1/workflow/stream HTTP/1.1" 200 OK
+[WORKFLOW-STREAM] total=4270ms | normalize=397ms, recall=72ms, rerank=84ms, rag=3713ms | hits=3 retrieved_used=True
+INFO:     127.0.0.1:33794 - "POST /v1/workflow/stream HTTP/1.1" 200 OK
+[WORKFLOW-STREAM] total=5458ms | normalize=448ms, recall=47ms, rerank=94ms, rag=4865ms | hits=3 retrieved_used=True
+INFO:     127.0.0.1:46366 - "POST /v1/workflow/stream HTTP/1.1" 200 OK
+[WORKFLOW-STREAM] total=5014ms | normalize=410ms, recall=48ms, rerank=87ms, rag=4466ms | hits=3 retrieved_used=True
+INFO:     127.0.0.1:44476 - "POST /v1/workflow/stream HTTP/1.1" 200 OK

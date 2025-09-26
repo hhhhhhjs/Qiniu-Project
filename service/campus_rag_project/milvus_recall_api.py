@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 from pymilvus import MilvusClient
 
 # ================== 配置（ENV 可覆盖） ==================
-EMBED_API_URL = os.getenv("EMBED_API_URL", "http://127.0.0.1:9001/embed")
+EMBED_API_URL = os.getenv("EMBED_API_URL", "http://127.0.0.1:9002/embed")
 
 # Milvus / Milvus Lite：URI 可是文件路径（milvus-lite）或 http://host:19530
 MILVUS_URI = os.getenv("MILVUS_DB_PATH", "/home/wmy/workspace/server/campus_rag_project/milvus_lite.db")

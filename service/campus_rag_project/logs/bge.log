@@ -1,0 +1,387 @@
+INFO:     Started server process [376913]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:9002 (Press CTRL+C to quit)
+[ok] BGE model loaded from /home/wmy/workspace/model_zoo/BAAI/bge-m3
+[ok] worker 0 started
+initial target device:   0%|          | 0/2 [00:00<?, ?it/s]initial target device:  50%|█████     | 1/2 [00:03<00:03,  3.75s/it]initial target device: 100%|██████████| 2/2 [00:07<00:00,  3.83s/it]initial target device: 100%|██████████| 2/2 [00:07<00:00,  3.82s/it]
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 333.20it/s]
+You're using a XLMRobertaTokenizerFast tokenizer. Please note that with a fast tokenizer, using the `__call__` method is faster than using a method to encode the text followed by a call to the `pad` method to get a padded encoding.
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 85.20it/s]
+Chunks: 100%|██████████| 1/1 [00:01<00:00,  1.29s/it]Chunks: 100%|██████████| 1/1 [00:01<00:00,  1.29s/it]
+INFO:     127.0.0.1:37644 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 738.04it/s]
+You're using a XLMRobertaTokenizerFast tokenizer. Please note that with a fast tokenizer, using the `__call__` method is faster than using a method to encode the text followed by a call to the `pad` method to get a padded encoding.
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 92.16it/s]
+Chunks: 100%|██████████| 1/1 [00:01<00:00,  1.87s/it]Chunks: 100%|██████████| 1/1 [00:01<00:00,  1.87s/it]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 36.93it/s]
+INFO:     127.0.0.1:40246 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4917.12it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 91.50it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 23.02it/s]
+INFO:     127.0.0.1:34152 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4975.45it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 88.05it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 30.35it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 43.45it/s]
+INFO:     127.0.0.1:34168 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 3809.54it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 80.68it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 26.79it/s]
+INFO:     127.0.0.1:39306 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4712.70it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 86.74it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 27.34it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 52.82it/s]
+INFO:     127.0.0.1:39312 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 3631.43it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 59.71it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 19.86it/s]
+INFO:     127.0.0.1:48170 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4707.41it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 91.53it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 27.84it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 52.78it/s]
+INFO:     127.0.0.1:48178 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5302.53it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 95.76it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 30.20it/s]
+INFO:     127.0.0.1:51768 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4798.97it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 61.15it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 19.07it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 43.80it/s]
+INFO:     127.0.0.1:51784 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5295.84it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 93.77it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 27.34it/s]
+INFO:     127.0.0.1:44644 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5190.97it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 49.67it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 19.10it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 50.16it/s]
+INFO:     127.0.0.1:44654 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5262.61it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 63.22it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 19.09it/s]
+INFO:     127.0.0.1:51770 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5584.96it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 93.04it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 28.16it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 44.58it/s]
+INFO:     127.0.0.1:51784 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5295.84it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 97.82it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 31.54it/s]
+INFO:     127.0.0.1:40684 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5405.03it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 59.96it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 20.25it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 48.55it/s]
+INFO:     127.0.0.1:40696 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4169.29it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 98.08it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 31.59it/s]
+INFO:     127.0.0.1:60226 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5419.00it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 56.43it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 22.05it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 49.23it/s]
+INFO:     127.0.0.1:60234 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5363.56it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 97.41it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 31.73it/s]
+INFO:     127.0.0.1:38028 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5336.26it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 73.01it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 20.99it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 41.31it/s]
+INFO:     127.0.0.1:38036 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4894.17it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 95.54it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 23.17it/s]
+INFO:     127.0.0.1:59890 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4072.14it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 58.58it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 19.65it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 51.92it/s]
+INFO:     127.0.0.1:59902 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5336.26it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 94.39it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 30.49it/s]
+INFO:     127.0.0.1:41898 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4928.68it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 92.53it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 24.30it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 49.39it/s]
+INFO:     127.0.0.1:41900 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4443.12it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 61.21it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 20.27it/s]
+INFO:     127.0.0.1:46996 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4877.10it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 98.08it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 29.60it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 50.21it/s]
+INFO:     127.0.0.1:47002 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4999.17it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 97.11it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 29.01it/s]
+INFO:     127.0.0.1:37468 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5178.15it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 61.20it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 22.53it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 51.98it/s]
+INFO:     127.0.0.1:37476 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5236.33it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 95.59it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 27.37it/s]
+INFO:     127.0.0.1:45054 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4987.28it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 61.79it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 21.24it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 42.90it/s]
+INFO:     127.0.0.1:45070 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4905.62it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 96.32it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 34.35it/s]
+INFO:     127.0.0.1:52592 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5223.29it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 57.00it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 23.54it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 44.38it/s]
+INFO:     127.0.0.1:52594 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5256.02it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 96.05it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 31.45it/s]
+INFO:     127.0.0.1:59590 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4588.95it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 58.49it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 10.32it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 45.78it/s]
+INFO:     127.0.0.1:59602 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4650.00it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 97.12it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 31.16it/s]
+INFO:     127.0.0.1:41672 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5349.88it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 52.43it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 18.20it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 43.46it/s]
+INFO:     127.0.0.1:41680 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4975.45it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 97.04it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 28.05it/s]
+INFO:     127.0.0.1:42420 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5785.25it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 56.90it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 21.99it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 57.03it/s]
+INFO:     127.0.0.1:42428 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5461.33it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 92.54it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 30.72it/s]
+INFO:     127.0.0.1:53974 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5540.69it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 72.71it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 28.45it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 41.28it/s]
+INFO:     127.0.0.1:53982 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5289.16it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 95.45it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 30.54it/s]
+INFO:     127.0.0.1:49894 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4262.50it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 61.23it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 19.08it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 47.49it/s]
+INFO:     127.0.0.1:49908 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5504.34it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 71.05it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 13.79it/s]
+INFO:     127.0.0.1:49184 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5497.12it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 88.97it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 30.66it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 49.77it/s]
+INFO:     127.0.0.1:49196 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5336.26it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 93.37it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 31.76it/s]
+INFO:     127.0.0.1:37104 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5391.14it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 86.25it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 32.12it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 59.27it/s]
+INFO:     127.0.0.1:37108 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4975.45it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 66.56it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 18.54it/s]
+INFO:     127.0.0.1:42004 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5482.75it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 86.54it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 29.09it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 42.50it/s]
+INFO:     127.0.0.1:42008 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5242.88it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 92.19it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 26.72it/s]
+INFO:     127.0.0.1:53528 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4975.45it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 86.55it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 22.84it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 50.30it/s]
+INFO:     127.0.0.1:53530 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5405.03it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 57.77it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 18.15it/s]
+INFO:     127.0.0.1:51400 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5121.25it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 97.13it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 31.80it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 53.33it/s]
+INFO:     127.0.0.1:51414 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5356.71it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 85.26it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 29.98it/s]
+INFO:     127.0.0.1:44372 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5269.23it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 91.08it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 30.62it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 57.75it/s]
+INFO:     127.0.0.1:44386 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4744.69it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 57.91it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 20.89it/s]
+INFO:     127.0.0.1:35232 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5562.74it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 97.35it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 29.03it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 40.21it/s]
+INFO:     127.0.0.1:35246 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5349.88it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 96.71it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 29.62it/s]
+INFO:     127.0.0.1:57718 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5489.93it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 58.96it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 13.87it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 60.96it/s]
+INFO:     127.0.0.1:57730 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4798.97it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 56.81it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 14.86it/s]
+INFO:     127.0.0.1:56908 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5398.07it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 97.07it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 28.66it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 45.60it/s]
+INFO:     127.0.0.1:56924 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4670.72it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 96.16it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 31.25it/s]
+INFO:     127.0.0.1:60726 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5121.25it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 52.70it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 20.27it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 56.17it/s]
+INFO:     127.0.0.1:60740 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4104.02it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 59.71it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 22.88it/s]
+INFO:     127.0.0.1:41652 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4190.11it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 81.58it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 29.07it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 53.41it/s]
+INFO:     127.0.0.1:41654 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4848.91it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 98.63it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 31.99it/s]
+INFO:     127.0.0.1:46816 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5683.34it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 55.19it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 22.29it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 59.14it/s]
+INFO:     127.0.0.1:46818 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4877.10it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 97.07it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 31.79it/s]
+INFO:     127.0.0.1:48684 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5102.56it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 75.92it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 26.89it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 47.42it/s]
+INFO:     127.0.0.1:48700 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4899.89it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 96.74it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 26.39it/s]
+INFO:     127.0.0.1:33112 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5115.00it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 61.47it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 23.00it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 41.12it/s]
+INFO:     127.0.0.1:33124 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 3855.06it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 92.24it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 30.44it/s]
+INFO:     127.0.0.1:42322 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4284.27it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 60.03it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 12.60it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 32.23it/s]
+INFO:     127.0.0.1:42334 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4568.96it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 95.74it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 27.19it/s]
+INFO:     127.0.0.1:55406 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4981.36it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 59.18it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 20.49it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 30.48it/s]
+INFO:     127.0.0.1:55420 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4755.45it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 91.74it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 29.97it/s]
+INFO:     127.0.0.1:55226 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5236.33it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 86.15it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 26.85it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 42.47it/s]
+INFO:     127.0.0.1:55230 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5584.96it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 52.82it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 17.96it/s]
+INFO:     127.0.0.1:53992 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5555.37it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 89.64it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 28.52it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 43.85it/s]
+INFO:     127.0.0.1:54002 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4951.95it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 96.71it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 31.45it/s]
+INFO:     127.0.0.1:39122 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5140.08it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 56.77it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 21.32it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 47.66it/s]
+INFO:     127.0.0.1:39130 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 5454.23it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 88.45it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 30.46it/s]
+INFO:     127.0.0.1:49452 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4744.69it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 57.39it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 21.18it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 55.09it/s]
+INFO:     127.0.0.1:49464 - "POST /rerank HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 3711.77it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 95.06it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 30.77it/s]
+INFO:     127.0.0.1:33558 - "POST /embed HTTP/1.1" 200 OK
+Chunks:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize:   0%|          | 0/1 [00:00<?, ?it/s]pre tokenize: 100%|██████████| 1/1 [00:00<00:00, 4809.98it/s]
+Inference Embeddings:   0%|          | 0/1 [00:00<?, ?it/s]Inference Embeddings: 100%|██████████| 1/1 [00:00<00:00, 59.00it/s]
+Chunks: 100%|██████████| 1/1 [00:00<00:00, 19.49it/s]
+Chunks:   0%|          | 0/2 [00:00<?, ?it/s]Chunks: 100%|██████████| 2/2 [00:00<00:00, 46.73it/s]
+INFO:     127.0.0.1:33560 - "POST /rerank HTTP/1.1" 200 OK
