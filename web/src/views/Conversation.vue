@@ -245,14 +245,14 @@ onUnmounted(() => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 60vh;
+  height: 45vh;
   flex-shrink: 0;
 }
 
 /* 下半部分：聊天面板 */
 .chat-section {
   position: relative;
-  height: 35vh;
+  height: 50vh;
   margin: 0 20px 20px 20px;
   flex-shrink: 0;
 }
