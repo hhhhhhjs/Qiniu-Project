@@ -79,6 +79,7 @@ import {
   type VoiceConversationConfig
 } from '@/api/voiceConversation'
 import { ElMessage } from 'element-plus'
+import { checkAllServices, formatServiceReport } from '@/utils/serviceHealthCheck'
 
 const route = useRoute()
 
@@ -128,13 +129,27 @@ async function initializeVoiceConversation() {
       throw new Error('浏览器不支持所需的语音功能')
     }
 
+    // 检查服务状态
+    console.log('🔍 正在检查服务状态...')
+    const services = await checkAllServices()
+    const report = formatServiceReport(services)
+    console.log(report)
+
+    // 检查关键服务是否在线
+    const offlineServices = services.filter(s => s.status === 'offline')
+    if (offlineServices.length > 0) {
+      const offlineNames = offlineServices.map(s => s.name).join(', ')
+      ElMessage.warning(`以下服务离线: ${offlineNames}，部分功能可能无法正常使用`)
+    }
+
     // 获取推荐配置
     const audioConfig = getRecommendedAudioConfig()
 
     // 创建配置
     const config: VoiceConversationConfig = {
-      ragEndpoint: 'http://localhost:8000/v1/workflow/stream',
+      ragEndpoint: 'http://localhost:9004/v1/workflow/stream',
       asrEndpoint: 'ws://localhost:10095',
+      ttsEndpoint: 'http://localhost:8080',
       sampleRate: audioConfig.sampleRate,
       chunkSize: audioConfig.chunkSize,
       hotwords: {
