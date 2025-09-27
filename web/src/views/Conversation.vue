@@ -254,27 +254,174 @@ function updateUIState(state: 'idle' | 'listening' | 'processing' | 'speaking') 
 
 // 聊天相关方法
 const handleSendMessage = async (content: string) => {
-  if (!voiceManager || !isConversationReady.value) {
-    ElMessage.warning('语音对话未准备就绪，请稍后再试')
+  if (!isConversationReady.value) {
+    ElMessage.warning('对话系统未准备就绪，请稍后再试')
     return
   }
 
-  // 这里可以直接调用 RAG 工作流
-  // 由于我们的语音对话管理器已经集成了 RAG，这里可以复用相同的逻辑
   try {
     isProcessingMessage.value = true
+    conversationState.value = 'processing'
 
-    // 模拟调用 RAG 工作流（实际应该调用相同的接口）
-    // 这里为了演示，我们直接模拟一个回复
-    setTimeout(() => {
-      const aiResponse = `收到你的消息："${content}"，我正在为你查找相关信息...`
-      chatPanelRef.value?.addAIMessage(aiResponse)
-      isProcessingMessage.value = false
-    }, 1000)
+    // 开始流式 AI 消息
+    const messageId = chatPanelRef.value?.startStreamingAIMessage()
+    if (!messageId) {
+      throw new Error('无法创建消息')
+    }
+
+    // 调用 RAG 工作流流式接口
+    const ragEndpoint = 'http://localhost:9004/v1/workflow/stream'
+
+    let fullResponse = ''
+
+    const response = await fetch(ragEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'text/event-stream'
+      },
+      body: JSON.stringify({ text: content })
+    })
+
+    if (!response.ok) {
+      throw new Error(`RAG service error: ${response.status}`)
+    }
+
+    const reader = response.body?.getReader()
+    if (!reader) {
+      throw new Error('Failed to get response reader')
+    }
+
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) break
+
+      buffer += decoder.decode(value, { stream: true })
+
+      let idx
+      while ((idx = buffer.indexOf('\n\n')) !== -1) {
+        const chunk = buffer.slice(0, idx)
+        buffer = buffer.slice(idx + 2)
+
+        chunk.split('\n').forEach(line => {
+          if (line.startsWith('data:')) {
+            const jsonStr = line.slice(5).trim()
+            if (!jsonStr) return
+
+            try {
+              const event = JSON.parse(jsonStr)
+
+              if (event.event === 'delta' && event.text) {
+                // 流式更新消息内容
+                fullResponse += event.text
+                chatPanelRef.value?.updateStreamingMessage(messageId, fullResponse)
+              } else if (event.event === 'done' && event.answer) {
+                // 完整答案
+                fullResponse = event.answer
+                chatPanelRef.value?.updateStreamingMessage(messageId, fullResponse)
+              }
+            } catch (error) {
+              console.error('Failed to parse SSE event:', error)
+            }
+          }
+        })
+      }
+    }
+
+    // 完成流式消息
+    chatPanelRef.value?.finishStreamingMessage(messageId)
+
+    // 尝试播放 TTS 语音回复
+    if (fullResponse.trim()) {
+      await playTTSResponse(fullResponse)
+    }
+
   } catch (error) {
     console.error('发送消息失败:', error)
+    ElMessage.error('发送消息失败，请检查 RAG 服务是否正常运行')
+  } finally {
     isProcessingMessage.value = false
-    ElMessage.error('发送消息失败')
+    if (conversationState.value === 'processing') {
+      conversationState.value = 'idle'
+    }
+  }
+}
+
+// TTS 播放函数
+async function playTTSResponse(text: string): Promise<void> {
+  try {
+    conversationState.value = 'speaking'
+    isAISpeaking.value = true
+
+    // 尝试调用本地 TTS 服务
+    const ttsEndpoint = 'http://localhost:8080/tts'
+
+    const response = await fetch(ttsEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        text,
+        voice: 'default',
+        speed: 1.0,
+        pitch: 1.0
+      })
+    })
+
+    if (response.ok) {
+      // 播放本地 TTS 音频
+      const audioBlob = await response.blob()
+      const audioUrl = URL.createObjectURL(audioBlob)
+      const audio = new Audio(audioUrl)
+
+      audio.onended = () => {
+        URL.revokeObjectURL(audioUrl)
+        conversationState.value = 'idle'
+        isAISpeaking.value = false
+      }
+
+      audio.onerror = () => {
+        URL.revokeObjectURL(audioUrl)
+        fallbackToBrowserTTS(text)
+      }
+
+      await audio.play()
+    } else {
+      throw new Error('TTS service unavailable')
+    }
+  } catch (error) {
+    console.warn('Local TTS failed, using browser TTS:', error)
+    fallbackToBrowserTTS(text)
+  }
+}
+
+// 回退到浏览器 TTS
+function fallbackToBrowserTTS(text: string): void {
+  if ('speechSynthesis' in window) {
+    const utterance = new SpeechSynthesisUtterance(text)
+
+    utterance.onend = () => {
+      conversationState.value = 'idle'
+      isAISpeaking.value = false
+    }
+
+    utterance.onerror = () => {
+      conversationState.value = 'idle'
+      isAISpeaking.value = false
+    }
+
+    window.speechSynthesis.speak(utterance)
+  } else {
+    // 如果浏览器不支持 TTS，模拟播放时间
+    const estimatedDuration = Math.max(2000, text.length * 50)
+    setTimeout(() => {
+      conversationState.value = 'idle'
+      isAISpeaking.value = false
+    }, estimatedDuration)
   }
 }
 
