@@ -8,9 +8,22 @@
         class="message-item"
         :class="{ 'user-message': message.isUser, 'ai-message': !message.isUser }"
       >
-        <div class="message-bubble">
-          <div class="message-content">{{ message.content }}</div>
-          <div class="message-time">{{ formatTime(message.timestamp) }}</div>
+        <div class="message-bubble" :class="{ 'streaming': message.isStreaming }">
+          <div
+            class="message-content"
+            v-if="message.isUser || !message.htmlContent"
+          >
+            {{ message.content }}
+          </div>
+          <div
+            v-else
+            class="message-content markdown-content"
+            v-html="message.htmlContent"
+          ></div>
+          <div class="message-time">
+            {{ formatTime(message.timestamp) }}
+            <span v-if="message.isStreaming" class="streaming-indicator">●</span>
+          </div>
         </div>
       </div>
       
@@ -67,6 +80,7 @@
 <script setup lang="ts">
 import { ref, nextTick, watch, onMounted } from 'vue'
 import { Microphone, Promotion } from '@element-plus/icons-vue'
+import { marked } from 'marked'
 
 // 消息接口定义
 interface ChatMessage {
@@ -74,6 +88,8 @@ interface ChatMessage {
   content: string
   isUser: boolean
   timestamp: Date
+  isStreaming?: boolean // 是否正在流式更新
+  htmlContent?: string // 渲染后的 HTML 内容
 }
 
 // Props
@@ -123,16 +139,68 @@ const toggleVoiceInput = () => {
   emit('toggleVoice')
 }
 
+// 渲染 Markdown 为 HTML
+const renderMarkdown = (content: string): string => {
+  try {
+    const result = marked(content)
+    return typeof result === 'string' ? result : content
+  } catch (error) {
+    console.error('Markdown 渲染失败:', error)
+    return content // 如果渲染失败，返回原始内容
+  }
+}
+
+// 添加 AI 消息（一次性完整消息）
 const addAIMessage = (content: string) => {
   const message: ChatMessage = {
     id: Date.now().toString(),
     content,
     isUser: false,
-    timestamp: new Date()
+    timestamp: new Date(),
+    isStreaming: false,
+    htmlContent: renderMarkdown(content)
   }
-  
+
   messages.value.push(message)
   scrollToBottom()
+}
+
+// 开始流式 AI 消息
+const startStreamingAIMessage = (): string => {
+  const messageId = Date.now().toString()
+  const message: ChatMessage = {
+    id: messageId,
+    content: '',
+    isUser: false,
+    timestamp: new Date(),
+    isStreaming: true,
+    htmlContent: ''
+  }
+
+  messages.value.push(message)
+  scrollToBottom()
+  return messageId
+}
+
+// 更新流式消息内容
+const updateStreamingMessage = (messageId: string, newContent: string) => {
+  const messageIndex = messages.value.findIndex(msg => msg.id === messageId)
+  if (messageIndex !== -1) {
+    messages.value[messageIndex].content = newContent
+    messages.value[messageIndex].htmlContent = renderMarkdown(newContent)
+    scrollToBottom()
+  }
+}
+
+// 完成流式消息
+const finishStreamingMessage = (messageId: string) => {
+  const messageIndex = messages.value.findIndex(msg => msg.id === messageId)
+  if (messageIndex !== -1) {
+    messages.value[messageIndex].isStreaming = false
+    // 最终渲染一次 Markdown
+    messages.value[messageIndex].htmlContent = renderMarkdown(messages.value[messageIndex].content)
+    scrollToBottom()
+  }
 }
 
 const scrollToBottom = () => {
@@ -159,7 +227,10 @@ watch(() => props.currentTranscript, () => {
 
 // 暴露方法给父组件
 defineExpose({
-  addAIMessage
+  addAIMessage,
+  startStreamingAIMessage,
+  updateStreamingMessage,
+  finishStreamingMessage
 })
 
 // 初始化示例消息
@@ -258,6 +329,107 @@ onMounted(() => {
   font-size: 14px;
   line-height: 1.4;
   margin-bottom: 4px;
+}
+
+/* Markdown 内容样式 */
+.markdown-content {
+  word-wrap: break-word;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  margin: 0.5em 0;
+  font-weight: bold;
+}
+
+.markdown-content h1 { font-size: 1.2em; }
+.markdown-content h2 { font-size: 1.1em; }
+.markdown-content h3 { font-size: 1.05em; }
+
+.markdown-content p {
+  margin: 0.5em 0;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.markdown-content li {
+  margin: 0.2em 0;
+}
+
+.markdown-content code {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+.markdown-content pre {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0.8em;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 0.5em 0;
+}
+
+.markdown-content pre code {
+  background: none;
+  padding: 0;
+}
+
+.markdown-content blockquote {
+  border-left: 3px solid #ddd;
+  margin: 0.5em 0;
+  padding-left: 1em;
+  color: #666;
+}
+
+.markdown-content strong {
+  font-weight: bold;
+}
+
+.markdown-content em {
+  font-style: italic;
+}
+
+/* 流式显示效果 */
+.streaming {
+  position: relative;
+}
+
+.streaming::after {
+  content: '';
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 8px;
+  height: 8px;
+  background: #3b82f6;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+.streaming-indicator {
+  color: #3b82f6;
+  animation: pulse 1.5s infinite;
+  margin-left: 4px;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }
 
 .message-time {
