@@ -48,9 +48,10 @@
         <div class="relative">
           <el-input
             v-model="searchQuery"
-            placeholder="有什么可以帮你的吗？试试问我任何问题..."
+            placeholder="有什么可以帮你的吗？试试输入你喜欢的角色名..."
             size="large"
             class="search-input"
+            :disabled="isSearching"
             @keyup.enter="handleSearch"
           >
             <template #suffix>
@@ -60,17 +61,28 @@
                   circle
                   size="small"
                   class="voice-btn"
+                  :disabled="isSearching"
                 />
                 <el-button
                   :icon="Search"
                   type="primary"
                   circle
                   size="small"
+                  :loading="isSearching"
                   @click="handleSearch"
                 />
               </div>
             </template>
           </el-input>
+
+          
+        <!-- Loading 提示 -->
+        <div v-if="isSearching" class="mt-4 text-center absolute left-[40%]">
+          <div class="flex items-center justify-center space-x-2 text-blue-600">
+            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            <span class="text-sm font-medium">正在为您匹配角色...</span>
+          </div>
+        </div>
         </div>
       </div>
 
@@ -167,6 +179,7 @@ const showLoginDialog = ref<boolean>(false)
 const searchQuery = ref('')
 const currentComponent = shallowRef<Component>(LoginForm)
 const router = useRouter()
+const isSearching = ref(false) // 添加搜索状态
 
 interface featureType {
   id: number
@@ -209,6 +222,9 @@ const handleSearch = async () => {
     return
   }
 
+  // 开始搜索，显示 loading 状态
+  isSearching.value = true
+
   try {
     // 第一步：角色扮演意图检测
     const intentResult = await detectRoleplayIntent({
@@ -241,6 +257,9 @@ const handleSearch = async () => {
   } catch (error) {
     console.error('角色扮演检测失败:', error)
     ElMessage.error('角色扮演检测失败，请稍后重试')
+  } finally {
+    // 结束搜索，隐藏 loading 状态
+    isSearching.value = false
   }
 }
 
@@ -321,6 +340,13 @@ const handleRegisterSuccess = (value: string) => {
 .search-input :deep(.el-input__wrapper.is-focus) {
   border-color: #3b82f6;
   box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+}
+
+/* Loading 状态样式 */
+.search-input :deep(.el-input__wrapper.is-disabled) {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+  opacity: 0.8;
 }
 
 .search-input :deep(.el-input__inner) {
