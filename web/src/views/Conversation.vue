@@ -80,6 +80,9 @@ import {
 } from '@/api/voiceConversation'
 import { ElMessage } from 'element-plus'
 import { checkAllServices, formatServiceReport } from '@/utils/serviceHealthCheck'
+// 角色扮演相关
+import { startRoleplayStream, startRoleChatStream } from '@/api/roleplayController'
+import type { RoleplayStreamFinalData } from '@/api/types/roleplayTypes'
 
 const route = useRoute()
 
@@ -119,6 +122,12 @@ const isRecording = ref(false)
 const conversationState = ref<'idle' | 'listening' | 'processing' | 'speaking'>('idle')
 const isConversationReady = ref(false)
 const errorMessage = ref('')
+
+// 角色扮演相关状态
+const isRoleplayMode = computed(() => route.query.isRoleplay === 'true')
+const originalInput = computed(() => route.query.originalInput as string || '')
+const roleplayData = ref<RoleplayStreamFinalData | null>(null)
+const isIntroductionComplete = ref(false)
 
 // 初始化语音对话管理器
 async function initializeVoiceConversation() {
@@ -167,15 +176,15 @@ async function initializeVoiceConversation() {
       onTranscript: (text, isFinal) => {
         currentTranscript.value = text
         if (isFinal && text.trim()) {
-          // 最终识别结果会自动发送到 RAG 工作流
+          // 最终识别结果通过 handleSendMessage 处理，支持角色扮演模式
           console.log('Final transcript:', text)
+          handleSendMessage(text.trim())
         }
       },
 
       onResponse: (text) => {
-        // 机器人回复
-        chatPanelRef.value?.addAIMessage(text)
-        console.log('Bot response:', text)
+        // 这个回调在新的架构中不再使用，因为响应通过 handleSendMessage 处理
+        console.log('Bot response (deprecated):', text)
       },
 
       onError: (error) => {
@@ -269,74 +278,13 @@ const handleSendMessage = async (content: string) => {
       throw new Error('无法创建消息')
     }
 
-    // 调用 RAG 工作流流式接口
-    const ragEndpoint = 'http://localhost:9004/v1/workflow/stream'
-
-    let fullResponse = ''
-
-    const response = await fetch(ragEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'text/event-stream'
-      },
-      body: JSON.stringify({ text: content })
-    })
-
-    if (!response.ok) {
-      throw new Error(`RAG service error: ${response.status}`)
-    }
-
-    const reader = response.body?.getReader()
-    if (!reader) {
-      throw new Error('Failed to get response reader')
-    }
-
-    const decoder = new TextDecoder()
-    let buffer = ''
-
-    while (true) {
-      const { value, done } = await reader.read()
-      if (done) break
-
-      buffer += decoder.decode(value, { stream: true })
-
-      let idx
-      while ((idx = buffer.indexOf('\n\n')) !== -1) {
-        const chunk = buffer.slice(0, idx)
-        buffer = buffer.slice(idx + 2)
-
-        chunk.split('\n').forEach(line => {
-          if (line.startsWith('data:')) {
-            const jsonStr = line.slice(5).trim()
-            if (!jsonStr) return
-
-            try {
-              const event = JSON.parse(jsonStr)
-
-              if (event.event === 'delta' && event.text) {
-                // 流式更新消息内容
-                fullResponse += event.text
-                chatPanelRef.value?.updateStreamingMessage(messageId, fullResponse)
-              } else if (event.event === 'done' && event.answer) {
-                // 完整答案
-                fullResponse = event.answer
-                chatPanelRef.value?.updateStreamingMessage(messageId, fullResponse)
-              }
-            } catch (error) {
-              console.error('Failed to parse SSE event:', error)
-            }
-          }
-        })
-      }
-    }
-
-    // 完成流式消息
-    chatPanelRef.value?.finishStreamingMessage(messageId)
-
-    // 尝试播放 TTS 语音回复
-    if (fullResponse.trim()) {
-      await playTTSResponse(fullResponse)
+    // 判断是否为角色扮演模式
+    if (isRoleplayMode.value && roleplayData.value && isIntroductionComplete.value) {
+      // 第三步：角色对话流式接口
+      await handleRoleplayChat(content, messageId)
+    } else {
+      // 普通 RAG 工作流
+      await handleNormalChat(content, messageId)
     }
 
   } catch (error) {
@@ -347,6 +295,127 @@ const handleSendMessage = async (content: string) => {
     if (conversationState.value === 'processing') {
       conversationState.value = 'idle'
     }
+  }
+}
+
+// 角色扮演对话处理函数
+async function handleRoleplayChat(content: string, messageId: string): Promise<void> {
+  if (!roleplayData.value) {
+    throw new Error('角色数据未准备就绪')
+  }
+
+  let fullResponse = ''
+
+  // 获取对话历史（简化版，暂时使用空数组，后续可以扩展）
+  const history: Array<{role: 'user' | 'assistant', content: string}> = []
+
+  await startRoleChatStream(
+    {
+      role_name: roleplayData.value.role_name,
+      profession: roleplayData.value.profession,
+      abilities: roleplayData.value.abilities,
+      style: roleplayData.value.style,
+      user_input: content,
+      history: history
+    },
+    (event) => {
+      switch (event.event) {
+        case 'start':
+          console.log('角色对话开始')
+          break
+
+        case 'delta':
+          if (event.text) {
+            fullResponse += event.text
+            chatPanelRef.value?.updateStreamingMessage(messageId, fullResponse)
+          }
+          break
+
+        case 'end':
+          chatPanelRef.value?.finishStreamingMessage(messageId)
+
+          // 播放 TTS 语音
+          if (fullResponse.trim()) {
+            playTTSResponse(fullResponse)
+          }
+          break
+
+        case 'warn':
+          console.warn('角色对话警告:', event.error)
+          break
+      }
+    }
+  )
+}
+
+// 普通聊天处理函数
+async function handleNormalChat(content: string, messageId: string): Promise<void> {
+  const ragEndpoint = 'http://localhost:9004/v1/workflow/stream'
+  let fullResponse = ''
+
+  const response = await fetch(ragEndpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'text/event-stream'
+    },
+    body: JSON.stringify({ text: content })
+  })
+
+  if (!response.ok) {
+    throw new Error(`RAG service error: ${response.status}`)
+  }
+
+  const reader = response.body?.getReader()
+  if (!reader) {
+    throw new Error('Failed to get response reader')
+  }
+
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  while (true) {
+    const { value, done } = await reader.read()
+    if (done) break
+
+    buffer += decoder.decode(value, { stream: true })
+
+    let idx
+    while ((idx = buffer.indexOf('\n\n')) !== -1) {
+      const chunk = buffer.slice(0, idx)
+      buffer = buffer.slice(idx + 2)
+
+      chunk.split('\n').forEach(line => {
+        if (line.startsWith('data:')) {
+          const jsonStr = line.slice(5).trim()
+          if (!jsonStr) return
+
+          try {
+            const event = JSON.parse(jsonStr)
+
+            if (event.event === 'delta' && event.text) {
+              // 流式更新消息内容
+              fullResponse += event.text
+              chatPanelRef.value?.updateStreamingMessage(messageId, fullResponse)
+            } else if (event.event === 'done' && event.answer) {
+              // 完整答案
+              fullResponse = event.answer
+              chatPanelRef.value?.updateStreamingMessage(messageId, fullResponse)
+            }
+          } catch (error) {
+            console.error('Failed to parse SSE event:', error)
+          }
+        }
+      })
+    }
+  }
+
+  // 完成流式消息
+  chatPanelRef.value?.finishStreamingMessage(messageId)
+
+  // 尝试播放 TTS 语音回复
+  if (fullResponse.trim()) {
+    await playTTSResponse(fullResponse)
   }
 }
 
@@ -457,10 +526,80 @@ function cleanupVoiceConversation() {
   errorMessage.value = ''
 }
 
+// 角色扮演初始化函数
+async function initializeRoleplay() {
+  if (!isRoleplayMode.value || !originalInput.value) {
+    return
+  }
+
+  try {
+    console.log('开始角色扮演初始化...')
+
+    // 第二步：调用角色自我介绍流式接口
+    let fullIntroduction = ''
+    const messageId = chatPanelRef.value?.startStreamingAIMessage()
+
+    if (!messageId) {
+      throw new Error('无法创建消息')
+    }
+
+    await startRoleplayStream(
+      { text: originalInput.value },
+      (event) => {
+        switch (event.event) {
+          case 'start':
+            console.log('角色自我介绍开始')
+            break
+
+          case 'delta':
+            if (event.text) {
+              fullIntroduction += event.text
+              chatPanelRef.value?.updateStreamingMessage(messageId, fullIntroduction)
+            }
+            break
+
+          case 'final':
+            // 保存角色数据用于后续对话
+            // final 事件的整个 event 对象（除了 event 字段）就是角色数据
+            const { event: eventType, ...roleData } = event
+            if (roleData && Object.keys(roleData).length > 0) {
+              roleplayData.value = roleData as RoleplayStreamFinalData
+              console.log('角色数据已保存:', roleplayData.value)
+            }
+            break
+
+          case 'end':
+            chatPanelRef.value?.finishStreamingMessage(messageId)
+            isIntroductionComplete.value = true
+
+            // 播放 TTS 语音
+            if (fullIntroduction.trim()) {
+              playTTSResponse(fullIntroduction)
+            }
+            console.log('角色自我介绍完成')
+            break
+
+          case 'warn':
+            console.warn('角色扮演警告:', event.error)
+            break
+        }
+      }
+    )
+  } catch (error) {
+    console.error('角色扮演初始化失败:', error)
+    ElMessage.error('角色扮演初始化失败，请稍后重试')
+  }
+}
+
 // 生命周期钩子
 onMounted(async () => {
   // 初始化语音对话
   await initializeVoiceConversation()
+
+  // 如果是角色扮演模式，进行角色初始化
+  if (isRoleplayMode.value) {
+    await initializeRoleplay()
+  }
 
   // 模拟音频频谱数据（用于视觉效果）
   const updateAudioFrequencies = () => {

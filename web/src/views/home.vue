@@ -152,6 +152,8 @@ import healthAssistant from '@/assets/images/roles/healthAssistant.jpg'
 // 组件
 import RegisterForm from '@/components/user/RegisterForm.vue'
 import * as lodash from 'lodash'
+// 角色扮演相关
+import { detectRoleplayIntent } from '@/api/roleplayController'
 
 interface UserInfo {
   id: string | number
@@ -192,30 +194,53 @@ const features: Ref<Array<featureType>> = ref([
 ])
 
 // 方法
-const handleSearch = () => {
+const handleSearch = async () => {
   if (!searchQuery.value.trim()) {
     ElMessage.warning('请输入你想要扮演的角色')
     return
   }
+
   const token = localStorage.getItem('token')
+  if (!token) {
+    ElMessage({
+      message: '哎呀，登录后再来试试吧(•̀⌓• )~',
+      type: 'warning',
+    })
+    return
+  }
+
   try {
-    // 可以跳转到聊天页面或处理搜索
-    if (token) {
+    // 第一步：角色扮演意图检测
+    const intentResult = await detectRoleplayIntent({
+      text: searchQuery.value.trim()
+    })
+
+    if (!intentResult.is_roleplay) {
+      // 不是角色扮演请求，显示提示
+      ElMessage({
+        message: '我是一个智能角色扮演 AI，请输入相关的角色名',
+        type: 'warning'
+      })
+      return
+    }
+
+    // 是角色扮演请求，跳转到对话页面并传递角色信息
+    if (intentResult.role_name) {
       router.push({
         path: '/conversation',
         query: {
           userid: 1, // TODO: 修改为真实用户 id
-          robotRoleName: searchQuery.value,
+          robotRoleName: intentResult.role_name,
+          isRoleplay: 'true', // 标识这是角色扮演模式
+          originalInput: searchQuery.value.trim() // 传递原始输入用于角色设定
         },
       })
     } else {
-      ElMessage({
-        message: '哎呀，登录后再来试试吧(•̀⌓• )~',
-        type: 'warning',
-      })
+      ElMessage.error('未能识别到具体的角色名称，请重新输入')
     }
   } catch (error) {
-    console.error('跳转到聊天页面失败:', error)
+    console.error('角色扮演检测失败:', error)
+    ElMessage.error('角色扮演检测失败，请稍后重试')
   }
 }
 
