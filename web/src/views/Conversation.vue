@@ -20,6 +20,34 @@
           :use-real-audio="useRealAudio"
         />
       </div>
+
+      <!-- 状态指示器 -->
+      <div class="status-indicator">
+        <div v-if="!isConversationReady" class="status-item connecting">
+          <div class="status-dot"></div>
+          <span>正在连接语音服务...</span>
+        </div>
+        <div v-else-if="conversationState === 'listening'" class="status-item listening">
+          <div class="status-dot"></div>
+          <span>正在监听...</span>
+        </div>
+        <div v-else-if="conversationState === 'processing'" class="status-item processing">
+          <div class="status-dot"></div>
+          <span>正在处理...</span>
+        </div>
+        <div v-else-if="conversationState === 'speaking'" class="status-item speaking">
+          <div class="status-dot"></div>
+          <span>AI 正在回复...</span>
+        </div>
+        <div v-else-if="errorMessage" class="status-item error">
+          <div class="status-dot"></div>
+          <span>{{ errorMessage }}</span>
+        </div>
+        <div v-else class="status-item idle">
+          <div class="status-dot"></div>
+          <span>点击麦克风开始对话</span>
+        </div>
+      </div>
     </div>
 
     <!-- 下半部分：聊天面板 -->
@@ -39,23 +67,25 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import VoiceWave3D from '@/components/VoiceWave3D.vue'
 import VoiceChatPanel from '@/components/VoiceChatPanel.vue'
-import { useAudioManager } from '@/composables/useAudioManager'
+import {
+  createVoiceConversationManager,
+  checkVoiceSupport,
+  getRecommendedAudioConfig,
+  type VoiceConversationManager,
+  type VoiceConversationConfig
+} from '@/api/voiceConversation'
+import { ElMessage } from 'element-plus'
 
 const route = useRoute()
 
 const robotRoleName = computed(() => (route.query.robotRoleName as string) || 'AI 助手')
 
-// 音频管理器
-const {
-  isRecording,
-  audioData,
-  startRecording,
-  stopRecording,
-} = useAudioManager()
+// 语音对话管理器
+let voiceManager: VoiceConversationManager | null = null
 
 // 角色头像映射
 import jixiaomeiImg from '@/assets/images/roles/jixiaomei.jpg'
@@ -75,152 +105,220 @@ const roleInitials = computed(() => robotRoleName.value?.slice(0, 1) || '机')
 const isUserSpeaking = ref(false)
 const isAISpeaking = ref(false)
 const waveIntensity = ref(0.5)
-const useRealAudio = ref(false)
+const useRealAudio = ref(true) // 使用真实音频
 const audioFrequencies = ref<number[]>([])
 
 // 聊天相关状态
 const currentTranscript = ref('')
 const isProcessingMessage = ref(false)
 const chatPanelRef = ref<InstanceType<typeof VoiceChatPanel>>()
+const isRecording = ref(false)
 
-// 语音转文字相关状态
-let transcriptionTimer: number | null = null
-let lastTranscriptTime = 0
-const transcriptionDelay = 1000 // 1秒延迟发送消息
+// 语音对话状态
+const conversationState = ref<'idle' | 'listening' | 'processing' | 'speaking'>('idle')
+const isConversationReady = ref(false)
+const errorMessage = ref('')
 
-// 麦克风控制方法
-async function startMicrophone() {
+// 初始化语音对话管理器
+async function initializeVoiceConversation() {
   try {
-    await startRecording()
-    useRealAudio.value = true
-  } catch (err) {
-    console.error('启动麦克风失败:', err)
+    // 检查浏览器支持
+    const support = checkVoiceSupport()
+    if (!support.webRTC || !support.speechSynthesis || !support.webSocket) {
+      throw new Error('浏览器不支持所需的语音功能')
+    }
+
+    // 获取推荐配置
+    const audioConfig = getRecommendedAudioConfig()
+
+    // 创建配置
+    const config: VoiceConversationConfig = {
+      ragEndpoint: 'http://localhost:8000/v1/workflow/stream',
+      asrEndpoint: 'ws://localhost:10095',
+      sampleRate: audioConfig.sampleRate,
+      chunkSize: audioConfig.chunkSize,
+      hotwords: {
+        '阿里巴巴': 20,
+        '通义实验室': 30,
+        [robotRoleName.value]: 25
+      }
+    }
+
+    // 创建语音对话管理器
+    voiceManager = createVoiceConversationManager(config)
+
+    // 设置事件回调
+    voiceManager.setCallbacks({
+      onTranscript: (text, isFinal) => {
+        currentTranscript.value = text
+        if (isFinal && text.trim()) {
+          // 最终识别结果会自动发送到 RAG 工作流
+          console.log('Final transcript:', text)
+        }
+      },
+
+      onResponse: (text) => {
+        // 机器人回复
+        chatPanelRef.value?.addAIMessage(text)
+        console.log('Bot response:', text)
+      },
+
+      onError: (error) => {
+        console.error('Voice conversation error:', error)
+        errorMessage.value = handleVoiceError(error)
+        ElMessage.error(errorMessage.value)
+      },
+
+      onStateChange: (state) => {
+        conversationState.value = state
+        updateUIState(state)
+      }
+    })
+
+    // 启动对话会话
+    await voiceManager.startConversation()
+    isConversationReady.value = true
+    errorMessage.value = ''
+
+    console.log('Voice conversation initialized successfully')
+  } catch (error) {
+    console.error('Failed to initialize voice conversation:', error)
+    errorMessage.value = error instanceof Error ? error.message : '初始化语音对话失败'
+    ElMessage.error(errorMessage.value)
   }
 }
 
-function stopMicrophone() {
-  stopRecording()
-  useRealAudio.value = false
-  audioFrequencies.value = []
-  currentTranscript.value = ''
+// 处理语音错误
+function handleVoiceError(error: Error): string {
+  if (error.message.includes('WebSocket')) {
+    return '语音识别服务连接失败，请检查网络连接'
+  } else if (error.message.includes('getUserMedia')) {
+    return '无法访问麦克风，请检查浏览器权限设置'
+  } else if (error.message.includes('HTTP error')) {
+    return 'RAG 服务连接失败，请检查服务器状态'
+  } else {
+    return `语音对话出现错误: ${error.message}`
+  }
+}
 
-  // 清理转录定时器
-  if (transcriptionTimer) {
-    clearTimeout(transcriptionTimer)
-    transcriptionTimer = null
+// 更新 UI 状态
+function updateUIState(state: 'idle' | 'listening' | 'processing' | 'speaking') {
+  switch (state) {
+    case 'listening':
+      isRecording.value = true
+      isUserSpeaking.value = true
+      isAISpeaking.value = false
+      isProcessingMessage.value = false
+      waveIntensity.value = 0.7
+      break
+    case 'processing':
+      isRecording.value = false
+      isUserSpeaking.value = false
+      isAISpeaking.value = false
+      isProcessingMessage.value = true
+      waveIntensity.value = 0.3
+      currentTranscript.value = '' // 清空实时转录
+      break
+    case 'speaking':
+      isRecording.value = false
+      isUserSpeaking.value = false
+      isAISpeaking.value = true
+      isProcessingMessage.value = false
+      waveIntensity.value = 0.8
+      break
+    case 'idle':
+    default:
+      isRecording.value = false
+      isUserSpeaking.value = false
+      isAISpeaking.value = false
+      isProcessingMessage.value = false
+      waveIntensity.value = 0.3
+      break
   }
 }
 
 // 聊天相关方法
 const handleSendMessage = async (content: string) => {
-  isProcessingMessage.value = true
+  if (!voiceManager || !isConversationReady.value) {
+    ElMessage.warning('语音对话未准备就绪，请稍后再试')
+    return
+  }
 
+  // 这里可以直接调用 RAG 工作流
+  // 由于我们的语音对话管理器已经集成了 RAG，这里可以复用相同的逻辑
   try {
-    // 这里可以调用 AI API 获取回复
-    // 模拟 AI 回复
+    isProcessingMessage.value = true
+
+    // 模拟调用 RAG 工作流（实际应该调用相同的接口）
+    // 这里为了演示，我们直接模拟一个回复
     setTimeout(() => {
-      const aiResponse = `收到你的消息："${content}"，我正在思考如何回复...`
+      const aiResponse = `收到你的消息："${content}"，我正在为你查找相关信息...`
       chatPanelRef.value?.addAIMessage(aiResponse)
       isProcessingMessage.value = false
-
-      // 模拟 AI 语音回复
-      isAISpeaking.value = true
-      setTimeout(() => {
-        isAISpeaking.value = false
-      }, 3000)
     }, 1000)
   } catch (error) {
     console.error('发送消息失败:', error)
     isProcessingMessage.value = false
+    ElMessage.error('发送消息失败')
   }
 }
 
-const handleToggleVoice = () => {
-  if (isRecording.value) {
-    stopMicrophone()
-  } else {
-    startMicrophone()
+const handleToggleVoice = async () => {
+  if (!voiceManager || !isConversationReady.value) {
+    ElMessage.warning('语音对话未准备就绪')
+    return
+  }
+
+  try {
+    if (conversationState.value === 'listening') {
+      // 停止监听
+      voiceManager.stopListening()
+    } else if (conversationState.value === 'idle') {
+      // 开始监听
+      await voiceManager.startListening()
+    }
+  } catch (error) {
+    console.error('切换语音状态失败:', error)
+    ElMessage.error('语音操作失败')
   }
 }
 
-// 监听音频数据变化
-watch(audioData, (newData) => {
-  if (newData) {
-    isUserSpeaking.value = newData.isActive
-    waveIntensity.value = Math.max(0.3, newData.volume * 2)
-    audioFrequencies.value = newData.frequencies
-
-    // 处理语音转文字
-    handleVoiceTranscription(newData.isActive)
+// 清理语音对话
+function cleanupVoiceConversation() {
+  if (voiceManager) {
+    voiceManager.stopConversation()
+    voiceManager = null
   }
-}, { deep: true })
-
-// 处理语音转文字逻辑
-const handleVoiceTranscription = (isActive: boolean) => {
-  if (isActive && isRecording.value) {
-    // 用户正在说话，更新实时转录
-    if (Date.now() - lastTranscriptTime > 500) { // 500ms 更新一次
-      simulateVoiceTranscription()
-      lastTranscriptTime = Date.now()
-    }
-
-    // 清除之前的定时器
-    if (transcriptionTimer) {
-      clearTimeout(transcriptionTimer)
-    }
-  } else if (!isActive && currentTranscript.value.trim()) {
-    // 用户停止说话，延迟发送消息
-    if (transcriptionTimer) {
-      clearTimeout(transcriptionTimer)
-    }
-
-    transcriptionTimer = window.setTimeout(() => {
-      if (currentTranscript.value.trim()) {
-        handleSendMessage(currentTranscript.value.trim())
-        currentTranscript.value = ''
-      }
-    }, transcriptionDelay)
-  }
+  isConversationReady.value = false
+  conversationState.value = 'idle'
+  currentTranscript.value = ''
+  errorMessage.value = ''
 }
 
-// 模拟语音转文字
-const simulateVoiceTranscription = () => {
-  const sampleTexts = [
-    '你好',
-    '你好，我想',
-    '你好，我想问一下',
-    '你好，我想问一下关于',
-    '你好，我想问一下关于天气的',
-    '你好，我想问一下关于天气的情况'
-  ]
+// 生命周期钩子
+onMounted(async () => {
+  // 初始化语音对话
+  await initializeVoiceConversation()
 
-  const randomIndex = Math.floor(Math.random() * sampleTexts.length)
-  currentTranscript.value = sampleTexts[randomIndex]
-}
-
-let timer: number | null = null
-onMounted(() => {
-
-  // AI 说话状态模拟（可以根据实际 AI 回答状态来控制）
-  timer = window.setInterval(() => {
-    // 如果没有使用真实音频，则模拟 AI 说话
-    if (!useRealAudio.value) {
-      // 随机模拟 AI 说话状态
-      if (Math.random() < 0.1) {
-        isAISpeaking.value = !isAISpeaking.value
-      }
-
-      if (isAISpeaking.value) {
-        waveIntensity.value = 0.4 + Math.random() * 0.4
-      }
+  // 模拟音频频谱数据（用于视觉效果）
+  const updateAudioFrequencies = () => {
+    if (isUserSpeaking.value || isAISpeaking.value) {
+      // 生成模拟的音频频谱数据
+      const frequencies = Array.from({ length: 32 }, () => Math.random() * 255)
+      audioFrequencies.value = frequencies
+    } else {
+      audioFrequencies.value = []
     }
-  }, 500)
-})
+  }
 
-onUnmounted(() => {
-  if (timer) window.clearInterval(timer)
-  if (transcriptionTimer) clearTimeout(transcriptionTimer)
-  stopMicrophone() // 确保清理麦克风资源
+  // 定期更新音频频谱（用于视觉效果）
+  const timer = setInterval(updateAudioFrequencies, 100)
+
+  // 清理函数
+  onUnmounted(() => {
+    clearInterval(timer)
+    cleanupVoiceConversation()
+  })
 })
 
 
@@ -314,6 +412,73 @@ onUnmounted(() => {
   z-index: 1;
   backdrop-filter: blur(10px);
   border-radius: 16px;
+}
+
+/* 状态指示器 */
+.status-indicator {
+  position: absolute;
+  bottom: 2vh;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.3s ease;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse-dot 2s infinite;
+}
+
+.status-item.connecting .status-dot {
+  background: #f59e0b;
+}
+
+.status-item.listening .status-dot {
+  background: #10b981;
+}
+
+.status-item.processing .status-dot {
+  background: #3b82f6;
+}
+
+.status-item.speaking .status-dot {
+  background: #8b5cf6;
+}
+
+.status-item.error .status-dot {
+  background: #ef4444;
+}
+
+.status-item.idle .status-dot {
+  background: #6b7280;
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
 }
 
 
