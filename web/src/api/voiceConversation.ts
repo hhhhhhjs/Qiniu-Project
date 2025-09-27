@@ -71,7 +71,7 @@ export async function callRAGWorkflowStream(
   onEvent: (event: WorkflowEvent) => void,
   config: VoiceConversationConfig = {}
 ): Promise<void> {
-  const endpoint = config.ragEndpoint || 'http://localhost:8000/v1/workflow/stream'
+  const endpoint = config.ragEndpoint || 'http://localhost:9004/v1/workflow/stream'
 
   try {
     const response = await fetch(endpoint, {
@@ -398,14 +398,17 @@ export class AudioRecorder {
 }
 
 /**
- * 语音合成管理类
+ * 语音合成管理类 - 支持本地 TTS 服务和浏览器原生 TTS
  */
 export class TextToSpeech {
   private synth: SpeechSynthesis
   private currentUtterance: SpeechSynthesisUtterance | null = null
+  private ttsEndpoint: string | undefined
+  private currentAudio: HTMLAudioElement | null = null
 
-  constructor() {
+  constructor(ttsEndpoint?: string) {
     this.synth = window.speechSynthesis
+    this.ttsEndpoint = ttsEndpoint
   }
 
   /**
@@ -413,17 +416,100 @@ export class TextToSpeech {
    * @param text 要播放的文本
    * @param options 播放选项
    */
-  speak(text: string, options: {
+  async speak(text: string, options: {
     voice?: SpeechSynthesisVoice
     rate?: number
     pitch?: number
     volume?: number
     onEnd?: () => void
-    onError?: (error: SpeechSynthesisErrorEvent) => void
-  } = {}): void {
+    onError?: (error: any) => void
+    useLocalTTS?: boolean
+  } = {}): Promise<void> {
     // 停止当前播放
     this.stop()
 
+    // 优先使用本地 TTS 服务
+    if (this.ttsEndpoint && (options.useLocalTTS !== false)) {
+      try {
+        await this.speakWithLocalTTS(text, options)
+        return
+      } catch (error) {
+        console.warn('Local TTS failed, falling back to browser TTS:', error)
+        // 如果本地 TTS 失败，回退到浏览器 TTS
+      }
+    }
+
+    // 使用浏览器原生 TTS
+    this.speakWithBrowserTTS(text, options)
+  }
+
+  /**
+   * 使用本地 TTS 服务播放
+   */
+  private async speakWithLocalTTS(text: string, options: {
+    onEnd?: () => void
+    onError?: (error: any) => void
+  }): Promise<void> {
+    if (!this.ttsEndpoint) {
+      throw new Error('TTS endpoint not configured')
+    }
+
+    try {
+      // 调用本地 TTS 服务
+      const response = await fetch(`${this.ttsEndpoint}/tts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          text,
+          voice: 'default', // 可以根据需要配置
+          speed: 1.0,
+          pitch: 1.0
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`TTS service error: ${response.status}`)
+      }
+
+      // 获取音频数据
+      const audioBlob = await response.blob()
+      const audioUrl = URL.createObjectURL(audioBlob)
+
+      // 播放音频
+      this.currentAudio = new Audio(audioUrl)
+
+      this.currentAudio.onended = () => {
+        URL.revokeObjectURL(audioUrl)
+        this.currentAudio = null
+        if (options.onEnd) options.onEnd()
+      }
+
+      this.currentAudio.onerror = (error) => {
+        URL.revokeObjectURL(audioUrl)
+        this.currentAudio = null
+        if (options.onError) options.onError(error)
+      }
+
+      await this.currentAudio.play()
+    } catch (error) {
+      if (options.onError) options.onError(error)
+      throw error
+    }
+  }
+
+  /**
+   * 使用浏览器原生 TTS 播放
+   */
+  private speakWithBrowserTTS(text: string, options: {
+    voice?: SpeechSynthesisVoice
+    rate?: number
+    pitch?: number
+    volume?: number
+    onEnd?: () => void
+    onError?: (error: any) => void
+  }): void {
     this.currentUtterance = new SpeechSynthesisUtterance(text)
 
     // 设置参数
@@ -448,10 +534,18 @@ export class TextToSpeech {
    * 停止播放
    */
   stop(): void {
+    // 停止浏览器 TTS
     if (this.synth.speaking) {
       this.synth.cancel()
     }
     this.currentUtterance = null
+
+    // 停止本地 TTS 音频
+    if (this.currentAudio) {
+      this.currentAudio.pause()
+      this.currentAudio.currentTime = 0
+      this.currentAudio = null
+    }
   }
 
   /**
@@ -483,7 +577,7 @@ export class TextToSpeech {
    * 获取播放状态
    */
   isSpeaking(): boolean {
-    return this.synth.speaking
+    return this.synth.speaking || (this.currentAudio !== null && !this.currentAudio.paused)
   }
 }
 
@@ -506,15 +600,16 @@ export class VoiceConversationManager {
 
   constructor(config: VoiceConversationConfig = {}) {
     this.config = {
-      ragEndpoint: 'http://localhost:8000/v1/workflow/stream',
+      ragEndpoint: 'http://localhost:9004/v1/workflow/stream',
       asrEndpoint: 'ws://localhost:10095',
+      ttsEndpoint: 'http://localhost:8080',
       sampleRate: 16000,
       chunkSize: [5, 10, 5],
       hotwords: { '阿里巴巴': 20, '通义实验室': 30 },
       ...config
     }
 
-    this.tts = new TextToSpeech()
+    this.tts = new TextToSpeech(this.config.ttsEndpoint)
   }
 
   /**
