@@ -59,13 +59,13 @@ const {
 
 // 角色头像映射
 import jixiaomeiImg from '@/assets/images/roles/jixiaomei.jpg'
-import feiduduImg from '@/assets/images/roles/肥嘟嘟左卫门.jpg'
-import labixxImg from '@/assets/images/roles/image.png'
+import petAssistant from '@/assets/images/roles/petAssistant.jpg'
+import healthAssistant from '@/assets/images/roles/healthAssistant.jpg'
 
 const roleImages: Record<string, string> = {
   '集小美': jixiaomeiImg,
-  '肥嘟嘟': feiduduImg,
-  '蜡笔小新': labixxImg,
+  '猫狗宠物助手': petAssistant,
+  '养生助手': healthAssistant,
 }
 
 const avatarUrl = computed(() => roleImages[robotRoleName.value] || '')
@@ -291,6 +291,8 @@ onUnmounted(() => {
 .role-name {
   position: absolute; bottom: -1.5rem; left: 50%; transform: translateX(-50%);
   font-size: 0.95rem; color: #64748b; font-weight: 500;
+  width: 200px;
+  text-align: center;
 }
 
 /* 多层涟漪 */

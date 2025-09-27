@@ -4,8 +4,8 @@
 
 <script setup lang="ts">
 import jixiaomeiImg from '@/assets/images/roles/jixiaomei.jpg'
-import feidudu from '@/assets/images/roles/肥嘟嘟左卫门.jpg'
-import labixx from '@/assets/images/roles/image.png' // 这里解析完之后变量名就是图片的绝对路径
+import petAssistant from '@/assets/images/roles/petAssistant.jpg'
+import healthAssistant from '@/assets/images/roles/healthAssistant.jpg' // 这里解析完之后变量名就是图片的绝对路径
 import { onMounted } from 'vue'
 
 
@@ -19,8 +19,8 @@ const preLoadImages = (urls:string[]) => {
 
 const imgList:string[] = [
   jixiaomeiImg,
-  feidudu,
-  labixx,
+  petAssistant,
+  healthAssistant,
 ]
 
 onMounted(() => {

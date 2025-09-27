@@ -147,8 +147,8 @@ import LoginForm from '@/components/user/LoginForm.vue'
 import { useRouter } from 'vue-router'
 // 导入图片
 import jixiaomeiImg from '@/assets/images/roles/jixiaomei.jpg'
-import feidudu from '@/assets/images/roles/肥嘟嘟左卫门.jpg'
-import labixx from '@/assets/images/roles/image.png'
+import petAssistant from '@/assets/images/roles/petAssistant.jpg'
+import healthAssistant from '@/assets/images/roles/healthAssistant.jpg'
 // 组件
 import RegisterForm from '@/components/user/RegisterForm.vue'
 import * as lodash from 'lodash'
@@ -181,13 +181,13 @@ const features: Ref<Array<featureType>> = ref([
   },
   {
     id: 2,
-    roleName: '肥嘟嘟',
-    background: feidudu,
+    roleName: '猫狗宠物助手',
+    background: petAssistant,
   },
   {
     id: 3,
-    roleName: '蜡笔小新',
-    background: labixx,
+    roleName: '养生助手',
+    background: healthAssistant,
   },
 ])
 
