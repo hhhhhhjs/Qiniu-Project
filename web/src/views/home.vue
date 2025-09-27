@@ -48,9 +48,10 @@
         <div class="relative">
           <el-input
             v-model="searchQuery"
-            placeholder="有什么可以帮你的吗？试试问我任何问题..."
+            placeholder="有什么可以帮你的吗？试试输入你喜欢的角色名..."
             size="large"
             class="search-input"
+            :disabled="isSearching"
             @keyup.enter="handleSearch"
           >
             <template #suffix>
@@ -60,17 +61,28 @@
                   circle
                   size="small"
                   class="voice-btn"
+                  :disabled="isSearching"
                 />
                 <el-button
                   :icon="Search"
                   type="primary"
                   circle
                   size="small"
+                  :loading="isSearching"
                   @click="handleSearch"
                 />
               </div>
             </template>
           </el-input>
+
+          
+        <!-- Loading 提示 -->
+        <div v-if="isSearching" class="mt-4 text-center absolute left-[40%]">
+          <div class="flex items-center justify-center space-x-2 text-blue-600">
+            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            <span class="text-sm font-medium">正在为您匹配角色...</span>
+          </div>
+        </div>
         </div>
       </div>
 
@@ -152,6 +164,8 @@ import healthAssistant from '@/assets/images/roles/healthAssistant.jpg'
 // 组件
 import RegisterForm from '@/components/user/RegisterForm.vue'
 import * as lodash from 'lodash'
+// 角色扮演相关
+import { detectRoleplayIntent } from '@/api/roleplayController'
 
 interface UserInfo {
   id: string | number
@@ -165,6 +179,7 @@ const showLoginDialog = ref<boolean>(false)
 const searchQuery = ref('')
 const currentComponent = shallowRef<Component>(LoginForm)
 const router = useRouter()
+const isSearching = ref(false) // 添加搜索状态
 
 interface featureType {
   id: number
@@ -192,30 +207,59 @@ const features: Ref<Array<featureType>> = ref([
 ])
 
 // 方法
-const handleSearch = () => {
+const handleSearch = async () => {
   if (!searchQuery.value.trim()) {
     ElMessage.warning('请输入你想要扮演的角色')
     return
   }
+
   const token = localStorage.getItem('token')
+  if (!token) {
+    ElMessage({
+      message: '哎呀，登录后再来试试吧(•̀⌓• )~',
+      type: 'warning',
+    })
+    return
+  }
+
+  // 开始搜索，显示 loading 状态
+  isSearching.value = true
+
   try {
-    // 可以跳转到聊天页面或处理搜索
-    if (token) {
+    // 第一步：角色扮演意图检测
+    const intentResult = await detectRoleplayIntent({
+      text: searchQuery.value.trim()
+    })
+
+    if (!intentResult.is_roleplay) {
+      // 不是角色扮演请求，显示提示
+      ElMessage({
+        message: '我是一个智能角色扮演 AI，请输入相关的角色名',
+        type: 'warning'
+      })
+      return
+    }
+
+    // 是角色扮演请求，跳转到对话页面并传递角色信息
+    if (intentResult.role_name) {
       router.push({
         path: '/conversation',
         query: {
           userid: 1, // TODO: 修改为真实用户 id
-          robotRoleName: searchQuery.value,
+          robotRoleName: intentResult.role_name,
+          isRoleplay: 'true', // 标识这是角色扮演模式
+          originalInput: searchQuery.value.trim() // 传递原始输入用于角色设定
         },
       })
     } else {
-      ElMessage({
-        message: '哎呀，登录后再来试试吧(•̀⌓• )~',
-        type: 'warning',
-      })
+      ElMessage.error('未能识别到具体的角色名称，请重新输入')
     }
   } catch (error) {
-    console.error('跳转到聊天页面失败:', error)
+    console.error('角色扮演检测失败:', error)
+    ElMessage.error('角色扮演检测失败，请稍后重试')
+  } finally {
+    // 结束搜索，隐藏 loading 状态
+    isSearching.value = false
   }
 }
 
@@ -296,6 +340,13 @@ const handleRegisterSuccess = (value: string) => {
 .search-input :deep(.el-input__wrapper.is-focus) {
   border-color: #3b82f6;
   box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+}
+
+/* Loading 状态样式 */
+.search-input :deep(.el-input__wrapper.is-disabled) {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+  opacity: 0.8;
 }
 
 .search-input :deep(.el-input__inner) {
