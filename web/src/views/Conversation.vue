@@ -289,7 +289,7 @@ onUnmounted(() => {
   font-weight: bold;
 }
 .role-name {
-  position: absolute; bottom: -2.2rem; left: 50%; transform: translateX(-50%);
+  position: absolute; bottom: -1.5rem; left: 50%; transform: translateX(-50%);
   font-size: 0.95rem; color: #64748b; font-weight: 500;
 }
 
