@@ -1,12 +1,22 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import requests
 import time
 import json
 from datetime import datetime
 
-app = FastAPI()
+app = FastAPI(title="Workflow API")
+
+# === 全局启用 CORS ===
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 前端的域名+端口
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ==== 可调参数 ====
 REQ_TIMEOUT = 30.0  # 每个下游请求的超时（秒）
