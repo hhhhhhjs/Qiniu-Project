@@ -59,14 +59,6 @@
         >
           <template #suffix>
             <div class="flex items-center space-x-2 pr-2">
-              <!-- 调试按钮 -->
-              <el-button
-                size="small"
-                @click="testAIMessage"
-                style="font-size: 10px; padding: 2px 4px;"
-              >
-                测试AI
-              </el-button>
               <el-button
                 :icon="Microphone"
                 circle
@@ -166,17 +158,6 @@ const sendMessage = () => {
 
 const toggleVoiceInput = () => {
   emit('toggleVoice')
-}
-
-// 测试AI消息创建
-const testAIMessage = () => {
-  const messageId = startStreamingAIMessage()
-  setTimeout(() => {
-    updateStreamingMessage(messageId, '这是一条测试AI消息，用来验证消息类型是否正确。')
-  }, 100)
-  setTimeout(() => {
-    finishStreamingMessage(messageId)
-  }, 500)
 }
 
 // 渲染 Markdown 为 HTML
