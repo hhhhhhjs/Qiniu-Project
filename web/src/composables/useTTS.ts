@@ -9,6 +9,7 @@ export function useTTS() {
     onStateChange?: (state: 'idle' | 'listening' | 'processing' | 'speaking') => void
   ): Promise<void> {
     try {
+      console.log('🔊 开始TTS文字转语音播放:', text.substring(0, 50) + '...')
       onStateChange?.('speaking')
       isAISpeaking.value = true
 

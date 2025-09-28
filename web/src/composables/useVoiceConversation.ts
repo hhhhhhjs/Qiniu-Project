@@ -15,6 +15,7 @@ export function useVoiceConversation() {
   const conversationState = ref<'idle' | 'listening' | 'processing' | 'speaking'>('idle')
   const errorMessage = ref('')
   const currentTranscript = ref('')
+  const isVoiceConnecting = ref(false) // 真实的语音连接状态
   
   // 语音对话管理器
   let voiceManager: VoiceConversationManager | null = null
@@ -27,6 +28,8 @@ export function useVoiceConversation() {
     onStateChange?: (state: 'idle' | 'listening' | 'processing' | 'speaking') => void
   ) {
     try {
+      isVoiceConnecting.value = true
+      console.log('🔄 开始初始化语音对话服务...')
       // 检查浏览器支持
       const support = checkVoiceSupport()
       if (!support.webRTC || !support.speechSynthesis || !support.webSocket) {
@@ -101,13 +104,17 @@ export function useVoiceConversation() {
       // 启动对话会话
       await voiceManager.startConversation()
       isConversationReady.value = true
+      isVoiceConnecting.value = false
       errorMessage.value = ''
 
-      console.log('Voice conversation initialized successfully')
+      console.log('✅ 语音对话初始化成功')
     } catch (error) {
-      console.error('Failed to initialize voice conversation:', error)
+      console.error('❌ 语音对话初始化失败:', error)
+      isConversationReady.value = false
+      isVoiceConnecting.value = false
       errorMessage.value = error instanceof Error ? error.message : '初始化语音对话失败'
-      ElMessage.error(errorMessage.value)
+      // 不显示错误消息，因为语音功能是可选的
+      console.warn('语音功能不可用，但文字对话仍可正常使用')
     }
   }
 
@@ -169,12 +176,13 @@ export function useVoiceConversation() {
     conversationState,
     errorMessage,
     currentTranscript,
-    
+    isVoiceConnecting,
+
     // 方法
     initializeVoiceConversation,
     toggleVoice,
     cleanupVoiceConversation,
-    
+
     // 内部方法（可选暴露）
     handleVoiceError,
     updateUIState

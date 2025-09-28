@@ -29,14 +29,19 @@
         <div v-if="isRoleplayMode">角色数据: {{ roleplayData ? '已加载' : '未加载' }}</div>
         <div v-if="isRoleplayMode">介绍完成: {{ isIntroductionComplete ? '是' : '否' }}</div>
         <div v-if="isRoleplayMode">角色准备: {{ isRoleplayReady ? '是' : '否' }}</div>
+        <div v-if="!isRoleplayMode">语音连接中: {{ isVoiceConnecting ? '是' : '否' }}</div>
         <div v-if="!isRoleplayMode">语音准备: {{ isConversationReady ? '是' : '否' }}</div>
       </div>
 
       <!-- 状态指示器 -->
       <div class="status-indicator">
-        <div v-if="!isSystemReady" class="status-item connecting">
+        <div v-if="isRoleplayMode && !isSystemReady" class="status-item connecting">
           <div class="status-dot"></div>
-          <span>{{ isRoleplayMode ? '正在初始化角色...' : '正在连接语音服务...' }}</span>
+          <span>正在初始化角色...</span>
+        </div>
+        <div v-else-if="!isRoleplayMode && isVoiceConnecting" class="status-item connecting">
+          <div class="status-dot"></div>
+          <span>语音服务连接中...</span>
         </div>
         <div v-else-if="conversationState === 'listening'" class="status-item listening">
           <div class="status-dot"></div>
@@ -56,7 +61,7 @@
         </div>
         <div v-else class="status-item idle">
           <div class="status-dot"></div>
-          <span>点击麦克风开始对话</span>
+          <span>{{ isRoleplayMode ? '开始对话吧' : '可以开始对话' }}</span>
         </div>
       </div>
 
@@ -65,11 +70,13 @@
 
     <!-- 下半部分：聊天面板 -->
     <div class="chat-section">
-      <VoiceChatPanel 
+      <VoiceChatPanel
         ref="chatPanelRef"
         :current-transcript="currentTranscript"
         :is-processing="isProcessingMessage"
+        :is-listening="conversationState === 'listening'"
         @send-message="handleSendMessage"
+        @toggle-voice="handleToggleVoice"
       />
     </div>
   </div>
@@ -117,7 +124,9 @@ const {
   conversationState,
   errorMessage,
   currentTranscript,
+  isVoiceConnecting,
   initializeVoiceConversation,
+  toggleVoice,
   cleanupVoiceConversation
 } = voiceConversation
 
@@ -154,8 +163,8 @@ const isSystemReady = computed(() => {
     // 角色扮演模式：需要角色初始化完成
     return isRoleplayReady.value
   } else {
-    // 普通模式：需要语音对话准备完成
-    return isConversationReady.value
+    // 普通模式：文字对话立即可用，语音对话可选
+    return true // 普通模式下立即可用
   }
 })
 
@@ -183,6 +192,12 @@ function updateUIState(state: 'idle' | 'listening' | 'processing' | 'speaking') 
 }
 
 
+
+// 语音切换处理
+const handleToggleVoice = async () => {
+  console.log('🎤 用户点击麦克风按钮，当前状态:', conversationState.value)
+  await toggleVoice()
+}
 
 // 消息发送处理
 const handleSendMessage = async (content: string) => {
@@ -220,19 +235,22 @@ onMounted(async () => {
     robotRoleName: route.query.robotRoleName
   })
 
-  // 只有在非角色扮演模式下才初始化语音对话
+  // 只有在非角色扮演模式下才初始化语音对话（后台进行，不阻塞文字对话）
   if (!isRoleplayMode.value) {
-    await initializeVoiceConversation(
+    // 异步初始化语音对话，不等待完成
+    initializeVoiceConversation(
       robotRoleName.value,
       (text: string, isFinal: boolean) => {
         if (isFinal && text.trim()) {
-          console.log('Final transcript:', text)
+          console.log('🎤 10095语音转文字完成:', text)
           handleSendMessage(text.trim())
         }
       },
       undefined,
       updateUIState
-    )
+    ).catch(error => {
+      console.warn('语音对话初始化失败，但文字对话仍可使用:', error)
+    })
   }
 
   // 如果是角色扮演模式，进行角色初始化
@@ -248,7 +266,7 @@ onMounted(async () => {
       robotRoleName.value,
       (text: string, isFinal: boolean) => {
         if (isFinal && text.trim()) {
-          console.log('Final transcript:', text)
+          console.log('🎤 10095语音转文字完成:', text)
           handleSendMessage(text.trim())
         }
       },
