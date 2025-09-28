@@ -40,10 +40,21 @@ export interface RoleChatStreamRequest {
 
 // SSE 事件类型
 export interface SSEEvent {
-  event: 'start' | 'delta' | 'final' | 'end' | 'warn'
-  data?: any
-  message?: string
+  event: 'start' | 'normalize' | 'recall' | 'rerank' | 'delta' | 'done' | 'final' | 'end' | 'warn' | 'error'
+  ts?: string
+  elapsed_ms?: number
   text?: string
+  hit_count?: number
+  skipped?: boolean
+  candidates?: number
+  preview?: string
+  reason?: string
+  answer?: string
+  timings?: any
+  total_ms?: number
+  stage?: string
+  message?: string
+  data?: any
   error?: string
 }
 

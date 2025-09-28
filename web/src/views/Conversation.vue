@@ -69,6 +69,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { getUserMes } from '@/api/userController'
 import VoiceWave3D from '@/components/VoiceWave3D.vue'
 import VoiceChatPanel from '@/components/VoiceChatPanel.vue'
 import {
@@ -321,7 +322,19 @@ async function handleRoleplayChat(content: string, messageId: string): Promise<v
     (event) => {
       switch (event.event) {
         case 'start':
-          console.log('角色对话开始')
+          console.log('角色对话开始', event.ts)
+          break
+
+        case 'normalize':
+          console.log('文本标准化完成:', event.text, `耗时: ${event.elapsed_ms}ms`)
+          break
+
+        case 'recall':
+          console.log('召回完成:', `命中数量: ${event.hit_count}`, `耗时: ${event.elapsed_ms}ms`)
+          break
+
+        case 'rerank':
+          console.log('重排序完成:', `候选数: ${event.candidates}`, `耗时: ${event.elapsed_ms}ms`)
           break
 
         case 'delta':
@@ -329,6 +342,10 @@ async function handleRoleplayChat(content: string, messageId: string): Promise<v
             fullResponse += event.text
             chatPanelRef.value?.updateStreamingMessage(messageId, fullResponse)
           }
+          break
+
+        case 'done':
+          console.log('处理完成:', `总耗时: ${event.total_ms}ms`)
           break
 
         case 'end':
@@ -341,7 +358,12 @@ async function handleRoleplayChat(content: string, messageId: string): Promise<v
           break
 
         case 'warn':
-          console.warn('角色对话警告:', event.error)
+        case 'error':
+          console.warn('角色对话警告:', event.error || event.message)
+          break
+
+        default:
+          console.log('未知事件类型:', event.event, event)
           break
       }
     }
@@ -548,7 +570,22 @@ async function initializeRoleplay() {
       (event) => {
         switch (event.event) {
           case 'start':
-            console.log('角色自我介绍开始')
+            console.log('角色扮演开始', event.ts)
+            break
+
+          case 'normalize':
+            console.log('文本标准化完成:', event.text, `耗时: ${event.elapsed_ms}ms`)
+            break
+
+          case 'recall':
+            console.log('召回完成:', `命中数量: ${event.hit_count}`, `耗时: ${event.elapsed_ms}ms`)
+            break
+
+          case 'rerank':
+            console.log('重排序完成:', `候选数: ${event.candidates}`, `耗时: ${event.elapsed_ms}ms`)
+            if (event.preview) {
+              console.log('预览内容:', event.preview.substring(0, 100) + '...')
+            }
             break
 
           case 'delta':
@@ -556,6 +593,10 @@ async function initializeRoleplay() {
               fullIntroduction += event.text
               chatPanelRef.value?.updateStreamingMessage(messageId, fullIntroduction)
             }
+            break
+
+          case 'done':
+            console.log('处理完成:', `总耗时: ${event.total_ms}ms`)
             break
 
           case 'final':
@@ -580,7 +621,12 @@ async function initializeRoleplay() {
             break
 
           case 'warn':
-            console.warn('角色扮演警告:', event.error)
+          case 'error':
+            console.warn('角色扮演警告:', event.error || event.message)
+            break
+
+          default:
+            console.log('未知事件类型:', event.event, event)
             break
         }
       }
@@ -593,6 +639,9 @@ async function initializeRoleplay() {
 
 // 生命周期钩子
 onMounted(async () => {
+  // 检查是否是合法用户
+  await getUserMes()
+
   // 初始化语音对话
   await initializeVoiceConversation()
 

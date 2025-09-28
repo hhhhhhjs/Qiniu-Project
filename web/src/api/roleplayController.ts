@@ -76,9 +76,11 @@ export const startRoleplayStream = async (
 
         if (data) {
           try {
+            // 解析完整的JSON数据
+            const parsedData = JSON.parse(data)
             const eventData: SSEEvent = {
-              event: event as any,
-              ...(event === 'delta' ? { text: JSON.parse(data) } : JSON.parse(data))
+              event: parsedData.event || event,
+              ...parsedData
             }
             onEvent(eventData)
           } catch (error) {
@@ -153,9 +155,11 @@ export const startRoleChatStream = async (
 
         if (data) {
           try {
+            // 解析完整的JSON数据
+            const parsedData = JSON.parse(data)
             const eventData: SSEEvent = {
-              event: event as any,
-              ...(event === 'delta' ? { text: JSON.parse(data) } : JSON.parse(data))
+              event: parsedData.event || event,
+              ...parsedData
             }
             onEvent(eventData)
           } catch (error) {
