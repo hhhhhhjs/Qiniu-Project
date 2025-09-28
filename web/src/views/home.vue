@@ -281,6 +281,8 @@ const handleFeatureClickOriginal = (feature: any) => {
         query: {
           userid: 1, // TODO: 修改为真实用户 id
           robotRoleName: feature.roleName,
+          isRoleplay: 'true', // 标识这是角色扮演模式
+          originalInput: `扮演${feature.roleName}` // 构造原始输入用于角色设定
         },
       })
     } catch (error) {

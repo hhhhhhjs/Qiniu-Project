@@ -16,8 +16,8 @@
           :is-active="isUserSpeaking || isAISpeaking"
           :intensity="waveIntensity"
           :color="isUserSpeaking ? '#3b82f6' : '#8b5cf6'"
-          :frequencies="audioFrequencies"
-          :use-real-audio="useRealAudio"
+          :frequencies="audioData.frequencies"
+          :use-real-audio="true"
         />
       </div>
 
@@ -25,6 +25,11 @@
       <div v-if="true" class="debug-info" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 8px; border-radius: 4px; font-size: 12px; z-index: 1000;">
         <div>模式: {{ isRoleplayMode ? '角色扮演' : '普通对话' }}</div>
         <div>系统状态: {{ isSystemReady ? '已准备' : '初始化中' }}</div>
+        <div>音频录制: {{ isRecording ? '进行中' : '已停止' }}</div>
+        <div>音频音量: {{ audioData.volume.toFixed(3) }}</div>
+        <div>频谱数据: {{ audioData.frequencies.length }} 个频段</div>
+        <div>用户说话: {{ isUserSpeaking ? '是' : '否' }}</div>
+        <div>AI说话: {{ isAISpeaking ? '是' : '否' }}</div>
         <div v-if="isRoleplayMode">原始输入: {{ originalInput }}</div>
         <div v-if="isRoleplayMode">角色数据: {{ roleplayData ? '已加载' : '未加载' }}</div>
         <div v-if="isRoleplayMode">介绍完成: {{ isIntroductionComplete ? '是' : '否' }}</div>
@@ -94,6 +99,7 @@ import { useVoiceConversation } from '@/composables/useVoiceConversation'
 import { useRoleplay } from '@/composables/useRoleplay'
 import { useChatHandler } from '@/composables/useChatHandler'
 import { useTTS } from '@/composables/useTTS'
+import { useAudioManager } from '@/composables/useAudioManager'
 
 // 角色头像映射
 import jixiaomeiImg from '@/assets/images/roles/jixiaomei.jpg'
@@ -117,6 +123,7 @@ const voiceConversation = useVoiceConversation()
 const roleplay = useRoleplay()
 const chatHandler = useChatHandler()
 const tts = useTTS()
+const audioManager = useAudioManager()
 
 // 从 composables 中解构状态和方法
 const {
@@ -150,11 +157,16 @@ const {
   playTTSResponse
 } = tts
 
+const {
+  isRecording,
+  audioData,
+  startRecording,
+  stopRecording
+} = audioManager
+
 // 本地状态
 const isUserSpeaking = ref(false)
 const waveIntensity = ref(0.5)
-const useRealAudio = ref(true)
-const audioFrequencies = ref<number[]>([])
 const chatPanelRef = ref<InstanceType<typeof VoiceChatPanel>>()
 
 // 计算整体准备状态
@@ -169,24 +181,45 @@ const isSystemReady = computed(() => {
 })
 
 // 更新 UI 状态
-function updateUIState(state: 'idle' | 'listening' | 'processing' | 'speaking') {
+async function updateUIState(state: 'idle' | 'listening' | 'processing' | 'speaking') {
   switch (state) {
     case 'listening':
       isUserSpeaking.value = true
       waveIntensity.value = 0.8
+      // 确保音频录制已启动以获取频谱数据
+      if (!isRecording.value) {
+        try {
+          await startRecording()
+        } catch (error) {
+          console.warn('启动音频录制失败:', error)
+        }
+      }
       break
     case 'processing':
       isUserSpeaking.value = false
       waveIntensity.value = 0.6
+      // 保持音频录制以便显示处理状态的波形
       break
     case 'speaking':
       isUserSpeaking.value = false
       waveIntensity.value = 0.4
+      // 保持音频录制以便捕获 AI 语音输出
+      if (!isRecording.value) {
+        try {
+          await startRecording()
+        } catch (error) {
+          console.warn('启动音频录制失败:', error)
+        }
+      }
       break
     case 'idle':
     default:
       isUserSpeaking.value = false
       waveIntensity.value = 0.3
+      // 在空闲状态下停止音频录制
+      if (isRecording.value) {
+        stopRecording()
+      }
       break
   }
 }
@@ -230,6 +263,14 @@ onMounted(async () => {
     await getUserMes()
   } catch (error) {
     console.warn('用户认证失败，但功能仍可正常使用:', error)
+  }
+
+  // 启动音频录制以获取频谱数据用于声浪可视化
+  try {
+    await startRecording()
+    console.log('🎵 音频频谱录制已启动，用于声浪可视化')
+  } catch (error) {
+    console.warn('启动音频频谱录制失败，声浪将使用模拟数据:', error)
   }
 
   // 检查URL参数，确保角色扮演模式的条件
@@ -295,22 +336,9 @@ onMounted(async () => {
     )
   }
 
-  // 模拟音频频谱数据（用于视觉效果）
-  const updateAudioFrequencies = () => {
-    if (isUserSpeaking.value || isAISpeaking.value) {
-      const frequencies = Array.from({ length: 32 }, () => Math.random() * 255)
-      audioFrequencies.value = frequencies
-    } else {
-      audioFrequencies.value = []
-    }
-  }
-
-  // 定期更新音频频谱（用于视觉效果）
-  const timer = setInterval(updateAudioFrequencies, 100)
-
   // 清理函数
   onUnmounted(() => {
-    clearInterval(timer)
+    stopRecording()
     cleanupVoiceConversation()
   })
 })
