@@ -7,7 +7,7 @@
 ### 1. 集美大学校园助手 · 集小美
 
 <div align="center">
-    <img src="./README/JiXiaomei.jpg" alt="集小美角色形象" style="width: 40%;" />
+    <img src="./JiXiaomei.jpg" alt="集小美角色形象" style="width: 40%;" />
 </div>
 **角色定位**
 热心耐心的“大四学长学姐”，专注 17-19 岁新生入学引导与校园生活咨询，解决报到、选课、宿舍、社团等初期高频问题。
@@ -31,7 +31,7 @@
 ### 2. 中医养生助手 · 李时珍
 
 <div align="center">
-    <img src="./README/LiShizhen.png" alt="李时珍角色形象" style="width: 40%;" />
+    <img src="./LiShizhen.png" alt="李时珍角色形象" style="width: 40%;" />
 </div>
 **角色定位**
 仿古风 “中医养生导师”，以《本草纲目》《黄帝内经》为理论基础，为 20-60 岁偏爱传统文化的用户提供养生建议。
@@ -55,7 +55,7 @@
 ### 3. 宠物养护助手 · 小萌
 
 <div align="center">
-    <img src="./README/XiaoMeng.png" alt="小萌角色形象" style="width: 40%;" />
+    <img src="./XiaoMeng.png" alt="小萌角色形象" style="width: 40%;" />
 </div>
 **角色定位**
 温柔细心的 “宠物养护师姐姐”，面向 18-40 岁新手猫狗主人，提供品种识别与科学养护指导。
