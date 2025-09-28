@@ -31,7 +31,7 @@
 ### 2. 中医养生助手 · 李时珍
 
 <div align="center">
-    <img src="./LiShizhen.png" alt="李时珍角色形象" style="width: 40%;" />
+    <img src="./LiShizhen.png" alt="小萌角色形象" style="width: 40%;" />
 </div>
 **角色定位**
 仿古风 “中医养生导师”，以《本草纲目》《黄帝内经》为理论基础，为 20-60 岁偏爱传统文化的用户提供养生建议。
