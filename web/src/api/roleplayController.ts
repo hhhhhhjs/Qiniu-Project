@@ -28,7 +28,7 @@ export const startRoleplayStream = async (
   data: RoleplayStreamRequest,
   onEvent: (event: SSEEvent) => void
 ): Promise<void> => {
-  const response = await fetch('http://localhost:8000/v1/roleplay/stream', {
+  const response = await fetch('http://localhost:9103/v1/roleplay/stream', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -107,7 +107,7 @@ export const startRoleChatStream = async (
   data: RoleChatStreamRequest,
   onEvent: (event: SSEEvent) => void
 ): Promise<void> => {
-  const response = await fetch('http://localhost:8000/v1/rolechat/stream', {
+  const response = await fetch('http://localhost:9101/v1/rolechat/stream', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

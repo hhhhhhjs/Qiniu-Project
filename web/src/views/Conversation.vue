@@ -21,11 +21,19 @@
         />
       </div>
 
+      <!-- 调试信息 (开发环境) -->
+      <div v-if="true" class="debug-info" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 8px; border-radius: 4px; font-size: 12px; z-index: 1000;">
+        <div>模式: {{ isRoleplayMode ? '角色扮演' : '普通对话' }}</div>
+        <div v-if="isRoleplayMode">原始输入: {{ originalInput }}</div>
+        <div v-if="isRoleplayMode">角色数据: {{ roleplayData ? '已加载' : '未加载' }}</div>
+        <div v-if="isRoleplayMode">介绍完成: {{ isIntroductionComplete ? '是' : '否' }}</div>
+      </div>
+
       <!-- 状态指示器 -->
       <div class="status-indicator">
         <div v-if="!isConversationReady" class="status-item connecting">
           <div class="status-dot"></div>
-          <span>正在连接语音服务...</span>
+          <span>{{ isRoleplayMode ? '正在初始化角色...' : '正在连接语音服务...' }}</span>
         </div>
         <div v-else-if="conversationState === 'listening'" class="status-item listening">
           <div class="status-dot"></div>
@@ -48,21 +56,19 @@
           <span>点击麦克风开始对话</span>
         </div>
       </div>
+
+
     </div>
 
     <!-- 下半部分：聊天面板 -->
     <div class="chat-section">
-      <VoiceChatPanel
+      <VoiceChatPanel 
         ref="chatPanelRef"
-        :is-listening="isRecording"
         :current-transcript="currentTranscript"
         :is-processing="isProcessingMessage"
         @send-message="handleSendMessage"
-        @toggle-voice="handleToggleVoice"
       />
     </div>
-
-
   </div>
 </template>
 
@@ -72,30 +78,20 @@ import { useRoute } from 'vue-router'
 import { getUserMes } from '@/api/userController'
 import VoiceWave3D from '@/components/VoiceWave3D.vue'
 import VoiceChatPanel from '@/components/VoiceChatPanel.vue'
-import {
-  createVoiceConversationManager,
-  checkVoiceSupport,
-  getRecommendedAudioConfig,
-  type VoiceConversationManager,
-  type VoiceConversationConfig
-} from '@/api/voiceConversation'
-import { ElMessage } from 'element-plus'
-import { checkAllServices, formatServiceReport } from '@/utils/serviceHealthCheck'
-// 角色扮演相关
-import { startRoleplayStream, startRoleChatStream } from '@/api/roleplayController'
-import type { RoleplayStreamFinalData } from '@/api/types/roleplayTypes'
 
-const route = useRoute()
-
-const robotRoleName = computed(() => (route.query.robotRoleName as string) || 'AI 助手')
-
-// 语音对话管理器
-let voiceManager: VoiceConversationManager | null = null
+// 使用新的 composables
+import { useVoiceConversation } from '@/composables/useVoiceConversation'
+import { useRoleplay } from '@/composables/useRoleplay'
+import { useChatHandler } from '@/composables/useChatHandler'
+import { useTTS } from '@/composables/useTTS'
 
 // 角色头像映射
 import jixiaomeiImg from '@/assets/images/roles/jixiaomei.jpg'
 import petAssistant from '@/assets/images/roles/petAssistant.jpg'
 import healthAssistant from '@/assets/images/roles/healthAssistant.jpg'
+
+const route = useRoute()
+const robotRoleName = computed(() => (route.query.robotRoleName as string) || 'AI 助手')
 
 const roleImages: Record<string, string> = {
   '集小美': jixiaomeiImg,
@@ -106,535 +102,95 @@ const roleImages: Record<string, string> = {
 const avatarUrl = computed(() => roleImages[robotRoleName.value] || '')
 const roleInitials = computed(() => robotRoleName.value?.slice(0, 1) || '机')
 
-// 语音状态
+// 使用 composables
+const voiceConversation = useVoiceConversation()
+const roleplay = useRoleplay()
+const chatHandler = useChatHandler()
+const tts = useTTS()
+
+// 从 composables 中解构状态和方法
+const {
+  isConversationReady,
+  conversationState,
+  errorMessage,
+  currentTranscript,
+  initializeVoiceConversation,
+  cleanupVoiceConversation
+} = voiceConversation
+
+const {
+  isRoleplayMode,
+  originalInput,
+  roleplayData,
+  isIntroductionComplete,
+  initializeRoleplay,
+  handleRoleplayChat
+} = roleplay
+
+const {
+  isProcessingMessage,
+  handleSendMessage: handleSendMessageBase
+} = chatHandler
+
+const {
+  isAISpeaking,
+  playTTSResponse
+} = tts
+
+// 本地状态
 const isUserSpeaking = ref(false)
-const isAISpeaking = ref(false)
 const waveIntensity = ref(0.5)
-const useRealAudio = ref(true) // 使用真实音频
+const useRealAudio = ref(true)
 const audioFrequencies = ref<number[]>([])
-
-// 聊天相关状态
-const currentTranscript = ref('')
-const isProcessingMessage = ref(false)
 const chatPanelRef = ref<InstanceType<typeof VoiceChatPanel>>()
-const isRecording = ref(false)
-
-// 语音对话状态
-const conversationState = ref<'idle' | 'listening' | 'processing' | 'speaking'>('idle')
-const isConversationReady = ref(false)
-const errorMessage = ref('')
-
-// 角色扮演相关状态
-const isRoleplayMode = computed(() => route.query.isRoleplay === 'true')
-const originalInput = computed(() => route.query.originalInput as string || '')
-const roleplayData = ref<RoleplayStreamFinalData | null>(null)
-const isIntroductionComplete = ref(false)
-
-// 初始化语音对话管理器
-async function initializeVoiceConversation() {
-  try {
-    // 检查浏览器支持
-    const support = checkVoiceSupport()
-    if (!support.webRTC || !support.speechSynthesis || !support.webSocket) {
-      throw new Error('浏览器不支持所需的语音功能')
-    }
-
-    // 检查服务状态
-    console.log('🔍 正在检查服务状态...')
-    const services = await checkAllServices()
-    const report = formatServiceReport(services)
-    console.log(report)
-
-    // 检查关键服务是否在线
-    const offlineServices = services.filter(s => s.status === 'offline')
-    if (offlineServices.length > 0) {
-      const offlineNames = offlineServices.map(s => s.name).join(', ')
-      ElMessage.warning(`以下服务离线: ${offlineNames}，部分功能可能无法正常使用`)
-    }
-
-    // 获取推荐配置
-    const audioConfig = getRecommendedAudioConfig()
-
-    // 创建配置
-    const config: VoiceConversationConfig = {
-      ragEndpoint: 'http://localhost:9004/v1/workflow/stream',
-      asrEndpoint: 'ws://localhost:10095',
-      ttsEndpoint: 'http://localhost:8080',
-      sampleRate: audioConfig.sampleRate,
-      chunkSize: audioConfig.chunkSize,
-      hotwords: {
-        '阿里巴巴': 20,
-        '通义实验室': 30,
-        [robotRoleName.value]: 25
-      }
-    }
-
-    // 创建语音对话管理器
-    voiceManager = createVoiceConversationManager(config)
-
-    // 设置事件回调
-    voiceManager.setCallbacks({
-      onTranscript: (text, isFinal) => {
-        currentTranscript.value = text
-        if (isFinal && text.trim()) {
-          // 最终识别结果通过 handleSendMessage 处理，支持角色扮演模式
-          console.log('Final transcript:', text)
-          handleSendMessage(text.trim())
-        }
-      },
-
-      onResponse: (text) => {
-        // 这个回调在新的架构中不再使用，因为响应通过 handleSendMessage 处理
-        console.log('Bot response (deprecated):', text)
-      },
-
-      onError: (error) => {
-        console.error('Voice conversation error:', error)
-        errorMessage.value = handleVoiceError(error)
-        ElMessage.error(errorMessage.value)
-      },
-
-      onStateChange: (state) => {
-        conversationState.value = state
-        updateUIState(state)
-      }
-    })
-
-    // 启动对话会话
-    await voiceManager.startConversation()
-    isConversationReady.value = true
-    errorMessage.value = ''
-
-    console.log('Voice conversation initialized successfully')
-  } catch (error) {
-    console.error('Failed to initialize voice conversation:', error)
-    errorMessage.value = error instanceof Error ? error.message : '初始化语音对话失败'
-    ElMessage.error(errorMessage.value)
-  }
-}
-
-// 处理语音错误
-function handleVoiceError(error: Error): string {
-  if (error.message.includes('WebSocket')) {
-    return '语音识别服务连接失败，请检查网络连接'
-  } else if (error.message.includes('getUserMedia')) {
-    return '无法访问麦克风，请检查浏览器权限设置'
-  } else if (error.message.includes('HTTP error')) {
-    return 'RAG 服务连接失败，请检查服务器状态'
-  } else {
-    return `语音对话出现错误: ${error.message}`
-  }
-}
 
 // 更新 UI 状态
 function updateUIState(state: 'idle' | 'listening' | 'processing' | 'speaking') {
   switch (state) {
     case 'listening':
-      isRecording.value = true
       isUserSpeaking.value = true
-      isAISpeaking.value = false
-      isProcessingMessage.value = false
-      waveIntensity.value = 0.7
+      waveIntensity.value = 0.8
       break
     case 'processing':
-      isRecording.value = false
       isUserSpeaking.value = false
-      isAISpeaking.value = false
-      isProcessingMessage.value = true
-      waveIntensity.value = 0.3
-      currentTranscript.value = '' // 清空实时转录
+      waveIntensity.value = 0.6
       break
     case 'speaking':
-      isRecording.value = false
       isUserSpeaking.value = false
-      isAISpeaking.value = true
-      isProcessingMessage.value = false
-      waveIntensity.value = 0.8
+      waveIntensity.value = 0.4
       break
     case 'idle':
     default:
-      isRecording.value = false
       isUserSpeaking.value = false
-      isAISpeaking.value = false
-      isProcessingMessage.value = false
       waveIntensity.value = 0.3
       break
   }
 }
 
-// 聊天相关方法
+
+
+// 消息发送处理
 const handleSendMessage = async (content: string) => {
-  if (!isConversationReady.value) {
-    ElMessage.warning('对话系统未准备就绪，请稍后再试')
-    return
-  }
-
-  try {
-    isProcessingMessage.value = true
-    conversationState.value = 'processing'
-
-    // 开始流式 AI 消息
-    const messageId = chatPanelRef.value?.startStreamingAIMessage()
-    if (!messageId) {
-      throw new Error('无法创建消息')
-    }
-
-    // 判断是否为角色扮演模式
-    if (isRoleplayMode.value && roleplayData.value && isIntroductionComplete.value) {
-      // 第三步：角色对话流式接口
-      await handleRoleplayChat(content, messageId)
-    } else {
-      // 普通 RAG 工作流
-      await handleNormalChat(content, messageId)
-    }
-
-  } catch (error) {
-    console.error('发送消息失败:', error)
-    ElMessage.error('发送消息失败，请检查 RAG 服务是否正常运行')
-  } finally {
-    isProcessingMessage.value = false
-    if (conversationState.value === 'processing') {
-      conversationState.value = 'idle'
-    }
-  }
-}
-
-// 角色扮演对话处理函数
-async function handleRoleplayChat(content: string, messageId: string): Promise<void> {
-  if (!roleplayData.value) {
-    throw new Error('角色数据未准备就绪')
-  }
-
-  let fullResponse = ''
-
-  // 获取对话历史（简化版，暂时使用空数组，后续可以扩展）
-  const history: Array<{role: 'user' | 'assistant', content: string}> = []
-
-  await startRoleChatStream(
-    {
-      role_name: roleplayData.value.role_name,
-      profession: roleplayData.value.profession,
-      abilities: roleplayData.value.abilities,
-      style: roleplayData.value.style,
-      user_input: content,
-      history: history
-    },
-    (event) => {
-      switch (event.event) {
-        case 'start':
-          console.log('角色对话开始', event.ts)
-          break
-
-        case 'normalize':
-          console.log('文本标准化完成:', event.text, `耗时: ${event.elapsed_ms}ms`)
-          break
-
-        case 'recall':
-          console.log('召回完成:', `命中数量: ${event.hit_count}`, `耗时: ${event.elapsed_ms}ms`)
-          break
-
-        case 'rerank':
-          console.log('重排序完成:', `候选数: ${event.candidates}`, `耗时: ${event.elapsed_ms}ms`)
-          break
-
-        case 'delta':
-          if (event.text) {
-            fullResponse += event.text
-            chatPanelRef.value?.updateStreamingMessage(messageId, fullResponse)
-          }
-          break
-
-        case 'done':
-          console.log('处理完成:', `总耗时: ${event.total_ms}ms`)
-          break
-
-        case 'end':
-          chatPanelRef.value?.finishStreamingMessage(messageId)
-
-          // 播放 TTS 语音
-          if (fullResponse.trim()) {
-            playTTSResponse(fullResponse)
-          }
-          break
-
-        case 'warn':
-        case 'error':
-          console.warn('角色对话警告:', event.error || event.message)
-          break
-
-        default:
-          console.log('未知事件类型:', event.event, event)
-          break
-      }
+  await handleSendMessageBase(
+    content,
+    isRoleplayMode.value,
+    roleplayData.value,
+    isIntroductionComplete.value,
+    isConversationReady.value,
+    () => chatPanelRef.value?.startStreamingAIMessage(),
+    (messageId: string, text: string) => chatPanelRef.value?.updateStreamingMessage(messageId, text),
+    (messageId: string) => chatPanelRef.value?.finishStreamingMessage(messageId),
+    (text: string) => playTTSResponse(text, updateUIState),
+    async (content: string, messageId: string) => {
+      await handleRoleplayChat(
+        content,
+        messageId,
+        (messageId: string, text: string) => chatPanelRef.value?.updateStreamingMessage(messageId, text),
+        (messageId: string) => chatPanelRef.value?.finishStreamingMessage(messageId),
+        (text: string) => playTTSResponse(text, updateUIState)
+      )
     }
   )
-}
-
-// 普通聊天处理函数
-async function handleNormalChat(content: string, messageId: string): Promise<void> {
-  const ragEndpoint = 'http://localhost:9004/v1/workflow/stream'
-  let fullResponse = ''
-
-  const response = await fetch(ragEndpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'text/event-stream'
-    },
-    body: JSON.stringify({ text: content })
-  })
-
-  if (!response.ok) {
-    throw new Error(`RAG service error: ${response.status}`)
-  }
-
-  const reader = response.body?.getReader()
-  if (!reader) {
-    throw new Error('Failed to get response reader')
-  }
-
-  const decoder = new TextDecoder()
-  let buffer = ''
-
-  while (true) {
-    const { value, done } = await reader.read()
-    if (done) break
-
-    buffer += decoder.decode(value, { stream: true })
-
-    let idx
-    while ((idx = buffer.indexOf('\n\n')) !== -1) {
-      const chunk = buffer.slice(0, idx)
-      buffer = buffer.slice(idx + 2)
-
-      chunk.split('\n').forEach(line => {
-        if (line.startsWith('data:')) {
-          const jsonStr = line.slice(5).trim()
-          if (!jsonStr) return
-
-          try {
-            const event = JSON.parse(jsonStr)
-
-            if (event.event === 'delta' && event.text) {
-              // 流式更新消息内容
-              fullResponse += event.text
-              chatPanelRef.value?.updateStreamingMessage(messageId, fullResponse)
-            } else if (event.event === 'done' && event.answer) {
-              // 完整答案
-              fullResponse = event.answer
-              chatPanelRef.value?.updateStreamingMessage(messageId, fullResponse)
-            }
-          } catch (error) {
-            console.error('Failed to parse SSE event:', error)
-          }
-        }
-      })
-    }
-  }
-
-  // 完成流式消息
-  chatPanelRef.value?.finishStreamingMessage(messageId)
-
-  // 尝试播放 TTS 语音回复
-  if (fullResponse.trim()) {
-    await playTTSResponse(fullResponse)
-  }
-}
-
-// TTS 播放函数
-async function playTTSResponse(text: string): Promise<void> {
-  try {
-    conversationState.value = 'speaking'
-    isAISpeaking.value = true
-
-    // 尝试调用本地 TTS 服务
-    const ttsEndpoint = 'http://localhost:8080/tts'
-
-    const response = await fetch(ttsEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        text,
-        voice: 'default',
-        speed: 1.0,
-        pitch: 1.0
-      })
-    })
-
-    if (response.ok) {
-      // 播放本地 TTS 音频
-      const audioBlob = await response.blob()
-      const audioUrl = URL.createObjectURL(audioBlob)
-      const audio = new Audio(audioUrl)
-
-      audio.onended = () => {
-        URL.revokeObjectURL(audioUrl)
-        conversationState.value = 'idle'
-        isAISpeaking.value = false
-      }
-
-      audio.onerror = () => {
-        URL.revokeObjectURL(audioUrl)
-        fallbackToBrowserTTS(text)
-      }
-
-      await audio.play()
-    } else {
-      throw new Error('TTS service unavailable')
-    }
-  } catch (error) {
-    console.warn('Local TTS failed, using browser TTS:', error)
-    fallbackToBrowserTTS(text)
-  }
-}
-
-// 回退到浏览器 TTS
-function fallbackToBrowserTTS(text: string): void {
-  if ('speechSynthesis' in window) {
-    const utterance = new SpeechSynthesisUtterance(text)
-
-    utterance.onend = () => {
-      conversationState.value = 'idle'
-      isAISpeaking.value = false
-    }
-
-    utterance.onerror = () => {
-      conversationState.value = 'idle'
-      isAISpeaking.value = false
-    }
-
-    window.speechSynthesis.speak(utterance)
-  } else {
-    // 如果浏览器不支持 TTS，模拟播放时间
-    const estimatedDuration = Math.max(2000, text.length * 50)
-    setTimeout(() => {
-      conversationState.value = 'idle'
-      isAISpeaking.value = false
-    }, estimatedDuration)
-  }
-}
-
-const handleToggleVoice = async () => {
-  if (!voiceManager || !isConversationReady.value) {
-    ElMessage.warning('语音对话未准备就绪')
-    return
-  }
-
-  try {
-    if (conversationState.value === 'listening') {
-      // 停止监听
-      voiceManager.stopListening()
-    } else if (conversationState.value === 'idle') {
-      // 开始监听
-      await voiceManager.startListening()
-    }
-  } catch (error) {
-    console.error('切换语音状态失败:', error)
-    ElMessage.error('语音操作失败')
-  }
-}
-
-// 清理语音对话
-function cleanupVoiceConversation() {
-  if (voiceManager) {
-    voiceManager.stopConversation()
-    voiceManager = null
-  }
-  isConversationReady.value = false
-  conversationState.value = 'idle'
-  currentTranscript.value = ''
-  errorMessage.value = ''
-}
-
-// 角色扮演初始化函数
-async function initializeRoleplay() {
-  if (!isRoleplayMode.value || !originalInput.value) {
-    return
-  }
-
-  try {
-    console.log('开始角色扮演初始化...')
-
-    // 第二步：调用角色自我介绍流式接口
-    let fullIntroduction = ''
-    const messageId = chatPanelRef.value?.startStreamingAIMessage()
-
-    if (!messageId) {
-      throw new Error('无法创建消息')
-    }
-
-    await startRoleplayStream(
-      { text: originalInput.value },
-      (event) => {
-        switch (event.event) {
-          case 'start':
-            console.log('角色扮演开始', event.ts)
-            break
-
-          case 'normalize':
-            console.log('文本标准化完成:', event.text, `耗时: ${event.elapsed_ms}ms`)
-            break
-
-          case 'recall':
-            console.log('召回完成:', `命中数量: ${event.hit_count}`, `耗时: ${event.elapsed_ms}ms`)
-            break
-
-          case 'rerank':
-            console.log('重排序完成:', `候选数: ${event.candidates}`, `耗时: ${event.elapsed_ms}ms`)
-            if (event.preview) {
-              console.log('预览内容:', event.preview.substring(0, 100) + '...')
-            }
-            break
-
-          case 'delta':
-            if (event.text) {
-              fullIntroduction += event.text
-              chatPanelRef.value?.updateStreamingMessage(messageId, fullIntroduction)
-            }
-            break
-
-          case 'done':
-            console.log('处理完成:', `总耗时: ${event.total_ms}ms`)
-            break
-
-          case 'final':
-            // 保存角色数据用于后续对话
-            // final 事件的整个 event 对象（除了 event 字段）就是角色数据
-            const { event: eventType, ...roleData } = event
-            if (roleData && Object.keys(roleData).length > 0) {
-              roleplayData.value = roleData as RoleplayStreamFinalData
-              console.log('角色数据已保存:', roleplayData.value)
-            }
-            break
-
-          case 'end':
-            chatPanelRef.value?.finishStreamingMessage(messageId)
-            isIntroductionComplete.value = true
-
-            // 播放 TTS 语音
-            if (fullIntroduction.trim()) {
-              playTTSResponse(fullIntroduction)
-            }
-            console.log('角色自我介绍完成')
-            break
-
-          case 'warn':
-          case 'error':
-            console.warn('角色扮演警告:', event.error || event.message)
-            break
-
-          default:
-            console.log('未知事件类型:', event.event, event)
-            break
-        }
-      }
-    )
-  } catch (error) {
-    console.error('角色扮演初始化失败:', error)
-    ElMessage.error('角色扮演初始化失败，请稍后重试')
-  }
 }
 
 // 生命周期钩子
@@ -642,18 +198,53 @@ onMounted(async () => {
   // 检查是否是合法用户
   await getUserMes()
 
-  // 初始化语音对话
-  await initializeVoiceConversation()
+  // 检查URL参数，确保角色扮演模式的条件
+  console.log('URL参数检查:', {
+    isRoleplay: route.query.isRoleplay,
+    originalInput: route.query.originalInput,
+    robotRoleName: route.query.robotRoleName
+  })
+
+  // 只有在非角色扮演模式下才初始化语音对话
+  if (!isRoleplayMode.value) {
+    await initializeVoiceConversation(
+      robotRoleName.value,
+      (text: string, isFinal: boolean) => {
+        if (isFinal && text.trim()) {
+          console.log('Final transcript:', text)
+          handleSendMessage(text.trim())
+        }
+      },
+      undefined,
+      updateUIState
+    )
+  }
 
   // 如果是角色扮演模式，进行角色初始化
-  if (isRoleplayMode.value) {
-    await initializeRoleplay()
+  if (isRoleplayMode.value && originalInput.value) {
+    await initializeRoleplay(
+      (messageId: string, text: string) => chatPanelRef.value?.updateStreamingMessage(messageId, text),
+      (messageId: string) => chatPanelRef.value?.finishStreamingMessage(messageId),
+      () => chatPanelRef.value?.startStreamingAIMessage(),
+      (text: string) => playTTSResponse(text, updateUIState)
+    )
+    // 角色初始化完成后，再启动语音对话
+    await initializeVoiceConversation(
+      robotRoleName.value,
+      (text: string, isFinal: boolean) => {
+        if (isFinal && text.trim()) {
+          console.log('Final transcript:', text)
+          handleSendMessage(text.trim())
+        }
+      },
+      undefined,
+      updateUIState
+    )
   }
 
   // 模拟音频频谱数据（用于视觉效果）
   const updateAudioFrequencies = () => {
     if (isUserSpeaking.value || isAISpeaking.value) {
-      // 生成模拟的音频频谱数据
       const frequencies = Array.from({ length: 32 }, () => Math.random() * 255)
       audioFrequencies.value = frequencies
     } else {
@@ -670,8 +261,6 @@ onMounted(async () => {
     cleanupVoiceConversation()
   })
 })
-
-
 </script>
 
 <style scoped>
@@ -820,6 +409,8 @@ onMounted(async () => {
   background: #6b7280;
 }
 
+
+
 @keyframes pulse-dot {
   0%, 100% {
     opacity: 1;
@@ -831,79 +422,8 @@ onMounted(async () => {
   }
 }
 
-
-
 @keyframes pulse { 0%{transform:scale(1)} 40%{transform:scale(1.03)} 70%{transform:scale(1)} 100%{transform:scale(1)} }
 @keyframes ripple { 0%{opacity:0; transform:scale(1)} 30%{opacity:.8} 100%{opacity:0; transform:scale(1.4)} }
-
-/* 麦克风控制 */
-.mic-controls {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: flex-end;
-}
-
-.mic-btn {
-  padding: 10px 18px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 24px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(15px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.mic-btn.start {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-  border-color: rgba(16, 185, 129, 0.3);
-}
-
-.mic-btn.start:hover {
-  background: linear-gradient(135deg, #059669, #047857);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
-}
-
-.mic-btn.stop {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
-  border-color: rgba(239, 68, 68, 0.3);
-}
-
-.mic-btn.stop:hover {
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
-}
-
-.mic-btn:disabled {
-  background: rgba(148, 163, 184, 0.6);
-  color: rgba(255, 255, 255, 0.7);
-  cursor: not-allowed;
-  transform: none;
-  border-color: rgba(148, 163, 184, 0.3);
-}
-
-.error-message {
-  color: #ef4444;
-  font-size: 12px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  max-width: 200px;
-  text-align: right;
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);
-}
 
 @media (max-width: 640px) {
   .voice-section {
@@ -925,16 +445,6 @@ onMounted(async () => {
     width: 95%;
     height: 80px;
     margin-top: 2vh;
-  }
-
-  .mic-controls {
-    top: 10px;
-    right: 10px;
-  }
-
-  .mic-btn {
-    font-size: 12px;
-    padding: 8px 14px;
   }
 
 
