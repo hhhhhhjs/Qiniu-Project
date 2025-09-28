@@ -48,7 +48,7 @@
         <div class="relative">
           <el-input
             v-model="searchQuery"
-            placeholder="有什么可以帮你的吗？试试输入你喜欢的角色名..."
+            placeholder="试试输入你喜欢的角色名，输入形式为:扮演[你想要的角色名称]"
             size="large"
             class="search-input"
             :disabled="isSearching"

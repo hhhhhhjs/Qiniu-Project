@@ -62,10 +62,6 @@ export const changeUserPassword = (data: changeUserPasswordType): Promise<ApiRes
 }
 
 // 获取单个用户信息
-export const getUserMes = (userId: string | number): Promise<ApiResponse> => {
-  return request.get('/user/userInfo', {
-    params: {
-      userId
-    }
-  })
+export const getUserMes = (): Promise<ApiResponse> => {
+  return request.get('/user/userInfo')
 }
