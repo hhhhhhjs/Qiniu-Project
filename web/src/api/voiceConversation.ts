@@ -282,15 +282,15 @@ export class FunASRWebSocket {
   }
 
   /**
-   * 结束识别（新协议）
+   * 结束识别（发送is_speaking: false）
    */
   endRecognition(): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       throw new Error('WebSocket is not connected')
     }
 
-    const stopMessage: FunASRStopMessage = { signal: 'stop' }
-    console.log('🎤 发送STOP信号:', stopMessage)
+    const stopMessage = { is_speaking: false }
+    console.log('🎤 发送结束标识:', stopMessage)
     this.ws.send(JSON.stringify(stopMessage))
   }
 
@@ -578,7 +578,7 @@ export class TextToSpeech {
 
     try {
       // 调用本地 TTS 服务
-      const response = await fetch(`${this.ttsEndpoint}/tts`, {
+      const response = await fetch(this.ttsEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -724,10 +724,10 @@ export class VoiceConversationManager {
     this.config = {
       ragEndpoint: 'http://localhost:9004/v1/workflow/stream',
       asrEndpoint: 'ws://localhost:10195',
-      ttsEndpoint: 'http://localhost:8080',
+      ttsEndpoint: 'http://127.0.0.1:8080/v1/tts',
       sampleRate: 16000,
       chunkSize: [5, 10, 5],
-      hotwords: { '阿里巴巴': 20, '通义实验室': 30 },
+      hotwords: { '集小美': 20, '小美': 30 },
       ...config
     }
 
@@ -896,19 +896,39 @@ export class VoiceConversationManager {
    * 处理 ASR 识别结果
    */
   private handleASRResult(result: FunASRResult): void {
-    // 兼容不同的结果格式
-    const isFinal = result.is_final === true || result.type === 'final'
+    console.log('🎤 处理ASR结果:', { text: result.text, mode: result.mode, is_final: result.is_final, result })
 
-    console.log('🎤 处理ASR结果:', { text: result.text, isFinal, result })
-
-    if (this.onTranscript) {
-      this.onTranscript(result.text, isFinal)
+    // 1. 在线增量结果（实时显示）
+    if (result.mode === '2pass-online' && result.text) {
+      if (this.onTranscript) {
+        this.onTranscript(result.text, false)
+      }
     }
 
-    // 如果是最终结果，发送到 RAG 工作流
-    if (isFinal && result.text.trim()) {
-      console.log('🎤 10095语音转文字完成:', result.text)
-      this.processUserInput(result.text)
+    // 2. 离线二遍结果（真正的最终文本）- 这是关键判据！
+    if (result.mode && result.mode.includes('offline') && result.text && result.text.trim()) {
+      console.log('🎤 收到离线二遍结果（最终文本）:', result.text)
+      if (this.onTranscript) {
+        this.onTranscript(result.text, true)
+      }
+      // 立即处理最终文本
+      this.processUserInput(result.text.trim())
+      return
+    }
+
+    // 3. 空的final结果（结束确认）- 忽略其文本内容
+    if (result.is_final === true && (!result.text || result.text.trim() === '')) {
+      console.log('🎤 收到结束确认信号（忽略空文本）')
+      return
+    }
+
+    // 4. 其他情况的final结果（兜底）
+    if (result.is_final === true && result.text && result.text.trim()) {
+      console.log('🎤 收到其他final结果:', result.text)
+      if (this.onTranscript) {
+        this.onTranscript(result.text, true)
+      }
+      this.processUserInput(result.text.trim())
     }
   }
 

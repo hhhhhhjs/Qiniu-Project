@@ -58,7 +58,7 @@ export function useVoiceConversation() {
       const config: VoiceConversationConfig = {
         ragEndpoint: 'http://localhost:9004/v1/workflow/stream',
         asrEndpoint: 'ws://localhost:10195',
-        ttsEndpoint: 'http://localhost:8080',
+        ttsEndpoint: 'http://127.0.0.1:8080/v1/tts',
         sampleRate: audioConfig.sampleRate,
         chunkSize: audioConfig.chunkSize,
         hotwords: {

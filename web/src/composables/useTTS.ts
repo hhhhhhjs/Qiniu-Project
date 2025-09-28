@@ -14,7 +14,7 @@ export function useTTS() {
       isAISpeaking.value = true
 
       // 尝试调用本地 TTS 服务
-      const ttsResponse = await fetch('http://localhost:8080/tts', {
+      const ttsResponse = await fetch('http://127.0.0.1:8080/v1/tts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

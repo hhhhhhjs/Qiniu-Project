@@ -247,6 +247,14 @@ onMounted(async () => {
       (text: string, isFinal: boolean) => {
         if (isFinal && text.trim()) {
           console.log('🎤 10095语音转文字完成:', text)
+          // 清除实时转录显示
+          currentTranscript.value = ''
+
+          // 先创建用户消息气泡
+          const userMessageId = chatPanelRef.value?.addUserMessage(text.trim())
+          console.log('👤 语音用户消息已创建:', userMessageId)
+
+          // 然后调用后端接口
           handleSendMessage(text.trim())
         }
       },
@@ -271,6 +279,14 @@ onMounted(async () => {
       (text: string, isFinal: boolean) => {
         if (isFinal && text.trim()) {
           console.log('🎤 10095语音转文字完成:', text)
+          // 清除实时转录显示
+          currentTranscript.value = ''
+
+          // 先创建用户消息气泡
+          const userMessageId = chatPanelRef.value?.addUserMessage(text.trim())
+          console.log('👤 语音用户消息已创建:', userMessageId)
+
+          // 然后调用后端接口
           handleSendMessage(text.trim())
         }
       },

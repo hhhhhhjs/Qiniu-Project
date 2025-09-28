@@ -28,7 +28,7 @@ export async function checkAllServices(): Promise<ServiceStatus[]> {
     },
     {
       name: 'TTS 语音合成',
-      endpoint: 'http://localhost:8080',
+      endpoint: 'http://127.0.0.1:8080/v1/tts',
       type: 'http' as const
     }
   ]
