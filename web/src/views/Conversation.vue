@@ -21,11 +21,19 @@
         />
       </div>
 
+      <!-- 调试信息 (开发环境) -->
+      <div v-if="true" class="debug-info" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 8px; border-radius: 4px; font-size: 12px; z-index: 1000;">
+        <div>模式: {{ isRoleplayMode ? '角色扮演' : '普通对话' }}</div>
+        <div v-if="isRoleplayMode">原始输入: {{ originalInput }}</div>
+        <div v-if="isRoleplayMode">角色数据: {{ roleplayData ? '已加载' : '未加载' }}</div>
+        <div v-if="isRoleplayMode">介绍完成: {{ isIntroductionComplete ? '是' : '否' }}</div>
+      </div>
+
       <!-- 状态指示器 -->
       <div class="status-indicator">
         <div v-if="!isConversationReady" class="status-item connecting">
           <div class="status-dot"></div>
-          <span>正在连接语音服务...</span>
+          <span>{{ isRoleplayMode ? '正在初始化角色...' : '正在连接语音服务...' }}</span>
         </div>
         <div v-else-if="conversationState === 'listening'" class="status-item listening">
           <div class="status-dot"></div>
@@ -269,6 +277,19 @@ const handleSendMessage = async (content: string) => {
     return
   }
 
+  // 检查是否为角色扮演模式，但角色初始化尚未完成
+  if (isRoleplayMode.value && !isIntroductionComplete.value) {
+    ElMessage.warning('角色正在初始化中，请稍后再试')
+    return
+  }
+
+  console.log('发送消息:', {
+    content,
+    isRoleplayMode: isRoleplayMode.value,
+    hasRoleplayData: !!roleplayData.value,
+    isIntroductionComplete: isIntroductionComplete.value
+  })
+
   try {
     isProcessingMessage.value = true
     conversationState.value = 'processing'
@@ -282,10 +303,14 @@ const handleSendMessage = async (content: string) => {
     // 判断是否为角色扮演模式
     if (isRoleplayMode.value && roleplayData.value && isIntroductionComplete.value) {
       // 第三步：角色对话流式接口
+      console.log('使用角色对话接口')
       await handleRoleplayChat(content, messageId)
-    } else {
+    } else if (!isRoleplayMode.value) {
       // 普通 RAG 工作流
+      console.log('使用普通对话接口')
       await handleNormalChat(content, messageId)
+    } else {
+      throw new Error('角色扮演模式配置不完整')
     }
 
   } catch (error) {
@@ -551,11 +576,18 @@ function cleanupVoiceConversation() {
 // 角色扮演初始化函数
 async function initializeRoleplay() {
   if (!isRoleplayMode.value || !originalInput.value) {
+    console.log('跳过角色扮演初始化:', { isRoleplayMode: isRoleplayMode.value, originalInput: originalInput.value })
+    return
+  }
+
+  // 防止重复初始化
+  if (isIntroductionComplete.value || roleplayData.value) {
+    console.log('角色扮演已初始化，跳过重复初始化')
     return
   }
 
   try {
-    console.log('开始角色扮演初始化...')
+    console.log('开始角色扮演初始化...', { originalInput: originalInput.value })
 
     // 第二步：调用角色自我介绍流式接口
     let fullIntroduction = ''
@@ -642,12 +674,24 @@ onMounted(async () => {
   // 检查是否是合法用户
   await getUserMes()
 
-  // 初始化语音对话
-  await initializeVoiceConversation()
+  // 检查URL参数，确保角色扮演模式的条件
+  console.log('URL参数检查:', {
+    isRoleplay: route.query.isRoleplay,
+    originalInput: route.query.originalInput,
+    robotRoleName: route.query.robotRoleName
+  })
+
+  // 只有在非角色扮演模式下才初始化语音对话
+  // 角色扮演模式下，语音对话将在角色初始化完成后再启动
+  if (!isRoleplayMode.value) {
+    await initializeVoiceConversation()
+  }
 
   // 如果是角色扮演模式，进行角色初始化
-  if (isRoleplayMode.value) {
+  if (isRoleplayMode.value && originalInput.value) {
     await initializeRoleplay()
+    // 角色初始化完成后，再启动语音对话
+    await initializeVoiceConversation()
   }
 
   // 模拟音频频谱数据（用于视觉效果）
