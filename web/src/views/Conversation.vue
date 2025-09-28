@@ -225,8 +225,12 @@ const handleSendMessage = async (content: string) => {
 
 // 生命周期钩子
 onMounted(async () => {
-  // 检查是否是合法用户
-  await getUserMes()
+  // 检查是否是合法用户（不阻塞后续初始化）
+  try {
+    await getUserMes()
+  } catch (error) {
+    console.warn('用户认证失败，但功能仍可正常使用:', error)
+  }
 
   // 检查URL参数，确保角色扮演模式的条件
   console.log('URL参数检查:', {

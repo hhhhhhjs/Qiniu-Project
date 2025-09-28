@@ -18,7 +18,7 @@ export async function checkAllServices(): Promise<ServiceStatus[]> {
   const services = [
     {
       name: 'FunASR 语音识别',
-      endpoint: 'ws://localhost:10095',
+      endpoint: 'ws://localhost:10195',
       type: 'websocket' as const
     },
     {
