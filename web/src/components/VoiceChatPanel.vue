@@ -350,9 +350,39 @@ const clearMessages = () => {
   messages.value = []
 }
 
+// 添加用户消息（用于语音输入）
+const addUserMessage = (content: string): string => {
+  const messageId = `user_voice_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
+  const message: ChatMessage = {
+    id: messageId,
+    content: content.trim(),
+    isUser: true,
+    timestamp: new Date()
+  }
+
+  console.log('👤 创建语音用户消息:', {
+    messageId,
+    isUser: message.isUser,
+    content: message.content,
+    totalMessages: messages.value.length
+  })
+
+  messages.value.push(message)
+
+  console.log('👤 语音用户消息已添加到列表:', {
+    messageId,
+    newTotalMessages: messages.value.length,
+    lastMessage: messages.value[messages.value.length - 1]
+  })
+
+  scrollToBottom()
+  return messageId
+}
+
 // 暴露方法给父组件
 defineExpose({
   addAIMessage,
+  addUserMessage,
   startStreamingAIMessage,
   updateStreamingMessage,
   finishStreamingMessage,

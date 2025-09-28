@@ -225,8 +225,12 @@ const handleSendMessage = async (content: string) => {
 
 // 生命周期钩子
 onMounted(async () => {
-  // 检查是否是合法用户
-  await getUserMes()
+  // 检查是否是合法用户（不阻塞后续初始化）
+  try {
+    await getUserMes()
+  } catch (error) {
+    console.warn('用户认证失败，但功能仍可正常使用:', error)
+  }
 
   // 检查URL参数，确保角色扮演模式的条件
   console.log('URL参数检查:', {
@@ -243,6 +247,14 @@ onMounted(async () => {
       (text: string, isFinal: boolean) => {
         if (isFinal && text.trim()) {
           console.log('🎤 10095语音转文字完成:', text)
+          // 清除实时转录显示
+          currentTranscript.value = ''
+
+          // 先创建用户消息气泡
+          const userMessageId = chatPanelRef.value?.addUserMessage(text.trim())
+          console.log('👤 语音用户消息已创建:', userMessageId)
+
+          // 然后调用后端接口
           handleSendMessage(text.trim())
         }
       },
@@ -267,6 +279,14 @@ onMounted(async () => {
       (text: string, isFinal: boolean) => {
         if (isFinal && text.trim()) {
           console.log('🎤 10095语音转文字完成:', text)
+          // 清除实时转录显示
+          currentTranscript.value = ''
+
+          // 先创建用户消息气泡
+          const userMessageId = chatPanelRef.value?.addUserMessage(text.trim())
+          console.log('👤 语音用户消息已创建:', userMessageId)
+
+          // 然后调用后端接口
           handleSendMessage(text.trim())
         }
       },

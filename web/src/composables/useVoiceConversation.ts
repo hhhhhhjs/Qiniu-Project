@@ -46,7 +46,9 @@ export function useVoiceConversation() {
       const offlineServices = services.filter(s => s.status === 'offline')
       if (offlineServices.length > 0) {
         const offlineNames = offlineServices.map(s => s.name).join(', ')
-        ElMessage.warning(`以下服务离线: ${offlineNames}，部分功能可能无法正常使用`)
+        console.warn(`以下服务离线: ${offlineNames}，将使用模拟模式进行开发调试`)
+        // 开发模式下不显示警告，避免干扰调试
+        // ElMessage.warning(`以下服务离线: ${offlineNames}，部分功能可能无法正常使用`)
       }
 
       // 获取推荐配置
@@ -55,8 +57,8 @@ export function useVoiceConversation() {
       // 创建配置
       const config: VoiceConversationConfig = {
         ragEndpoint: 'http://localhost:9004/v1/workflow/stream',
-        asrEndpoint: 'ws://localhost:10095',
-        ttsEndpoint: 'http://localhost:8080',
+        asrEndpoint: 'ws://localhost:10195',
+        ttsEndpoint: 'http://127.0.0.1:8080/v1/tts',
         sampleRate: audioConfig.sampleRate,
         chunkSize: audioConfig.chunkSize,
         hotwords: {
