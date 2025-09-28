@@ -7,6 +7,8 @@
         :key="message.id"
         class="message-item"
         :class="{ 'user-message': message.isUser, 'ai-message': !message.isUser }"
+        :data-is-user="message.isUser"
+        :data-message-id="message.id"
       >
         <div class="message-bubble" :class="{ 'streaming': message.isStreaming }">
           <div
@@ -23,6 +25,10 @@
           <div class="message-time">
             {{ formatTime(message.timestamp) }}
             <span v-if="message.isStreaming" class="streaming-indicator">●</span>
+            <!-- 调试信息 -->
+            <span class="debug-info" style="font-size: 10px; opacity: 0.5; margin-left: 5px;">
+              {{ message.isUser ? 'USER' : 'AI' }}
+            </span>
           </div>
         </div>
       </div>
@@ -53,6 +59,14 @@
         >
           <template #suffix>
             <div class="flex items-center space-x-2 pr-2">
+              <!-- 调试按钮 -->
+              <el-button
+                size="small"
+                @click="testAIMessage"
+                style="font-size: 10px; padding: 2px 4px;"
+              >
+                测试AI
+              </el-button>
               <el-button
                 :icon="Microphone"
                 circle
@@ -120,23 +134,49 @@ const messagesContainer = ref<HTMLElement>()
 // 函数方法
 const sendMessage = () => {
   if (!inputText.value.trim() || props.isProcessing) return
-  
+
+  const messageId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
   const message: ChatMessage = {
-    id: Date.now().toString(),
+    id: messageId,
     content: inputText.value.trim(),
     isUser: true,
     timestamp: new Date()
   }
-  
+
+  console.log('👤 创建用户消息:', {
+    messageId,
+    isUser: message.isUser,
+    content: message.content,
+    totalMessages: messages.value.length
+  })
+
   messages.value.push(message)
+
+  console.log('👤 用户消息已添加到列表:', {
+    messageId,
+    newTotalMessages: messages.value.length,
+    lastMessage: messages.value[messages.value.length - 1]
+  })
+
   emit('sendMessage', inputText.value.trim())
   inputText.value = ''
-  
+
   scrollToBottom()
 }
 
 const toggleVoiceInput = () => {
   emit('toggleVoice')
+}
+
+// 测试AI消息创建
+const testAIMessage = () => {
+  const messageId = startStreamingAIMessage()
+  setTimeout(() => {
+    updateStreamingMessage(messageId, '这是一条测试AI消息，用来验证消息类型是否正确。')
+  }, 100)
+  setTimeout(() => {
+    finishStreamingMessage(messageId)
+  }, 500)
 }
 
 // 渲染 Markdown 为 HTML
@@ -152,8 +192,9 @@ const renderMarkdown = (content: string): string => {
 
 // 添加 AI 消息（一次性完整消息）
 const addAIMessage = (content: string) => {
+  const messageId = `ai_complete_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
   const message: ChatMessage = {
-    id: Date.now().toString(),
+    id: messageId,
     content,
     isUser: false,
     timestamp: new Date(),
@@ -161,13 +202,14 @@ const addAIMessage = (content: string) => {
     htmlContent: renderMarkdown(content)
   }
 
+  console.log('🤖 创建完整AI消息:', { messageId, isUser: message.isUser })
   messages.value.push(message)
   scrollToBottom()
 }
 
 // 开始流式 AI 消息
 const startStreamingAIMessage = (): string => {
-  const messageId = Date.now().toString()
+  const messageId = `ai_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
   const message: ChatMessage = {
     id: messageId,
     content: '',
@@ -177,28 +219,124 @@ const startStreamingAIMessage = (): string => {
     htmlContent: ''
   }
 
+  console.log('🤖 创建AI消息:', {
+    messageId,
+    isUser: message.isUser,
+    totalMessages: messages.value.length,
+    allMessageIds: messages.value.map(m => ({ id: m.id, isUser: m.isUser }))
+  })
+
   messages.value.push(message)
+
+  console.log('🤖 AI消息已添加到列表:', {
+    messageId,
+    newTotalMessages: messages.value.length,
+    lastMessage: messages.value[messages.value.length - 1]
+  })
+
   scrollToBottom()
   return messageId
 }
 
 // 更新流式消息内容
 const updateStreamingMessage = (messageId: string, newContent: string) => {
+  console.log('🔍 查找要更新的消息:', {
+    messageId,
+    totalMessages: messages.value.length,
+    allMessageIds: messages.value.map(m => ({ id: m.id, isUser: m.isUser }))
+  })
+
+  // 额外的安全检查：确保messageId是AI消息的格式
+  if (!messageId.startsWith('ai_')) {
+    console.error('❌ 错误：尝试更新非AI消息!', { messageId })
+    return
+  }
+
   const messageIndex = messages.value.findIndex(msg => msg.id === messageId)
   if (messageIndex !== -1) {
-    messages.value[messageIndex].content = newContent
-    messages.value[messageIndex].htmlContent = renderMarkdown(newContent)
+    const message = messages.value[messageIndex]
+
+    // 双重安全检查：确保我们更新的是AI消息
+    if (message.isUser) {
+      console.error('❌ 错误：尝试更新用户消息!', {
+        messageId,
+        messageIndex,
+        isUser: message.isUser,
+        content: message.content
+      })
+      return
+    }
+
+    // 三重安全检查：确保消息ID匹配
+    if (message.id !== messageId) {
+      console.error('❌ 错误：消息ID不匹配!', {
+        expectedId: messageId,
+        actualId: message.id,
+        messageIndex
+      })
+      return
+    }
+
+    console.log('📝 更新流式消息:', {
+      messageId,
+      isUser: message.isUser,
+      contentLength: newContent.length,
+      messageIndex
+    })
+
+    // 使用Vue的响应式更新方式
+    messages.value[messageIndex] = {
+      ...message,
+      content: newContent,
+      htmlContent: renderMarkdown(newContent)
+    }
     scrollToBottom()
+  } else {
+    console.warn('⚠️ 未找到要更新的消息:', messageId)
   }
 }
 
 // 完成流式消息
 const finishStreamingMessage = (messageId: string) => {
+  // 额外的安全检查：确保messageId是AI消息的格式
+  if (!messageId.startsWith('ai_')) {
+    console.error('❌ 错误：尝试完成非AI消息!', { messageId })
+    return
+  }
+
   const messageIndex = messages.value.findIndex(msg => msg.id === messageId)
   if (messageIndex !== -1) {
-    messages.value[messageIndex].isStreaming = false
-    // 最终渲染一次 Markdown
-    messages.value[messageIndex].htmlContent = renderMarkdown(messages.value[messageIndex].content)
+    const message = messages.value[messageIndex]
+
+    // 双重安全检查：确保我们完成的是AI消息
+    if (message.isUser) {
+      console.error('❌ 错误：尝试完成用户消息!', {
+        messageId,
+        messageIndex,
+        isUser: message.isUser,
+        content: message.content
+      })
+      return
+    }
+
+    // 三重安全检查：确保消息ID匹配
+    if (message.id !== messageId) {
+      console.error('❌ 错误：消息ID不匹配!', {
+        expectedId: messageId,
+        actualId: message.id,
+        messageIndex
+      })
+      return
+    }
+
+    console.log('✅ 完成流式消息:', { messageId, isUser: message.isUser })
+
+    // 使用Vue的响应式更新方式
+    messages.value[messageIndex] = {
+      ...message,
+      isStreaming: false,
+      htmlContent: renderMarkdown(message.content)
+    }
     scrollToBottom()
   }
 }
@@ -225,24 +363,38 @@ watch(() => props.currentTranscript, () => {
   }
 })
 
+// 清除所有消息（调试用）
+const clearMessages = () => {
+  console.log('🧹 清除所有消息')
+  messages.value = []
+}
+
 // 暴露方法给父组件
 defineExpose({
   addAIMessage,
   startStreamingAIMessage,
   updateStreamingMessage,
-  finishStreamingMessage
+  finishStreamingMessage,
+  clearMessages
 })
 
 // 初始化示例消息
 onMounted(() => {
-  messages.value = [
-    {
-      id: '1',
-      content: '你好！我是你的AI助手，你可以通过语音或文字与我对话。',
-      isUser: false,
-      timestamp: new Date()
-    }
-  ]
+  const welcomeMessage: ChatMessage = {
+    id: 'welcome_ai_message',
+    content: '你好！我是你的AI助手，你可以通过语音或文字与我对话。',
+    isUser: false,
+    timestamp: new Date(),
+    isStreaming: false,
+    htmlContent: '你好！我是你的AI助手，你可以通过语音或文字与我对话。'
+  }
+
+  console.log('🎯 初始化欢迎消息:', {
+    id: welcomeMessage.id,
+    isUser: welcomeMessage.isUser
+  })
+
+  messages.value = [welcomeMessage]
 })
 </script>
 
@@ -306,15 +458,15 @@ onMounted(() => {
   word-wrap: break-word;
 }
 
-.user-message .message-bubble {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  color: white;
+.message-item.user-message .message-bubble {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+  color: white !important;
   border-bottom-right-radius: 6px;
 }
 
-.ai-message .message-bubble {
-  background: rgba(255, 255, 255, 0.9);
-  color: #374151;
+.message-item.ai-message .message-bubble {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #374151 !important;
   border: 1px solid rgba(59, 130, 246, 0.2);
   border-bottom-left-radius: 6px;
 }
