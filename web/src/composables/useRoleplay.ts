@@ -12,6 +12,7 @@ export function useRoleplay() {
   const originalInput = computed(() => route.query.originalInput as string || '')
   const roleplayData = ref<RoleplayStreamFinalData | null>(null)
   const isIntroductionComplete = ref(false)
+  const isRoleplayReady = ref(false)
 
   // 角色扮演初始化函数
   async function initializeRoleplay(
@@ -41,10 +42,12 @@ export function useRoleplay() {
       let fullIntroduction = ''
       const messageId = onStartMessage?.()
 
+      console.log('创建消息ID:', messageId)
       if (!messageId) {
         throw new Error('无法创建消息')
       }
 
+      console.log('准备调用 startRoleplayStream 接口...')
       await startRoleplayStream(
         { text: originalInput.value },
         (event) => {
@@ -92,12 +95,13 @@ export function useRoleplay() {
             case 'end':
               onFinishMessage?.(messageId)
               isIntroductionComplete.value = true
+              isRoleplayReady.value = true
 
               // 播放 TTS 语音
               if (fullIntroduction.trim()) {
                 onPlayTTS?.(fullIntroduction)
               }
-              console.log('角色自我介绍完成')
+              console.log('角色自我介绍完成，角色扮演已准备就绪')
               break
 
             case 'warn':
@@ -112,8 +116,11 @@ export function useRoleplay() {
         }
       )
     } catch (error) {
-      console.error('角色扮演初始化失败:', error)
-      ElMessage.error('角色扮演初始化失败，请稍后重试')
+      console.error('❌ 角色扮演初始化失败:', error)
+      ElMessage.error(`角色扮演初始化失败: ${error instanceof Error ? error.message : '未知错误'}`)
+      // 重置状态
+      isRoleplayReady.value = false
+      isIntroductionComplete.value = false
     }
   }
 
@@ -198,6 +205,7 @@ export function useRoleplay() {
   function resetRoleplayState() {
     roleplayData.value = null
     isIntroductionComplete.value = false
+    isRoleplayReady.value = false
   }
 
   return {
@@ -206,7 +214,8 @@ export function useRoleplay() {
     originalInput,
     roleplayData,
     isIntroductionComplete,
-    
+    isRoleplayReady,
+
     // 方法
     initializeRoleplay,
     handleRoleplayChat,

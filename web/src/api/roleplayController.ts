@@ -28,6 +28,11 @@ export const startRoleplayStream = async (
   data: RoleplayStreamRequest,
   onEvent: (event: SSEEvent) => void
 ): Promise<void> => {
+  console.log('🚀 调用角色扮演流式接口:', {
+    url: 'http://localhost:9103/v1/roleplay/stream',
+    data: data
+  })
+
   const response = await fetch('http://localhost:9103/v1/roleplay/stream', {
     method: 'POST',
     headers: {
@@ -37,8 +42,12 @@ export const startRoleplayStream = async (
     body: JSON.stringify(data)
   })
 
+  console.log('📡 接口响应状态:', response.status, response.statusText)
+
   if (!response.ok) {
-    throw new Error(`角色扮演流式接口失败: ${response.status}`)
+    const errorText = await response.text()
+    console.error('❌ 接口错误响应:', errorText)
+    throw new Error(`角色扮演流式接口失败: ${response.status} - ${errorText}`)
   }
 
   const reader = response.body?.getReader()
@@ -46,13 +55,17 @@ export const startRoleplayStream = async (
     throw new Error('无法获取响应流')
   }
 
+  console.log('📖 开始读取 SSE 流...')
   const decoder = new TextDecoder()
   let buffer = ''
 
   try {
     while (true) {
       const { value, done } = await reader.read()
-      if (done) break
+      if (done) {
+        console.log('📖 SSE 流读取完成')
+        break
+      }
 
       buffer += decoder.decode(value, { stream: true })
 
@@ -82,9 +95,10 @@ export const startRoleplayStream = async (
               event: parsedData.event || event,
               ...parsedData
             }
+            console.log('📨 收到 SSE 事件:', eventData.event, eventData)
             onEvent(eventData)
           } catch (error) {
-            console.error('解析 SSE 事件失败:', error)
+            console.error('❌ 解析 SSE 事件失败:', error, '原始数据:', data)
             onEvent({
               event: 'warn',
               error: '解析事件数据失败'
