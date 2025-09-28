@@ -15,6 +15,12 @@ export function useChatHandler() {
     const ragEndpoint = 'http://localhost:9004/v1/workflow/stream'
     let fullResponse = ''
 
+    console.log('🚀 调用9004机器人对话接口:', {
+      endpoint: ragEndpoint,
+      content: content,
+      messageId: messageId
+    })
+
     const response = await fetch(ragEndpoint, {
       method: 'POST',
       headers: {
@@ -24,14 +30,20 @@ export function useChatHandler() {
       body: JSON.stringify({ text: content })
     })
 
+    console.log('📡 普通对话接口响应状态:', response.status, response.statusText)
+
     if (!response.ok) {
-      throw new Error(`RAG 工作流请求失败: ${response.status}`)
+      const errorText = await response.text()
+      console.error('❌ 普通对话接口错误:', errorText)
+      throw new Error(`RAG 工作流请求失败: ${response.status} - ${errorText}`)
     }
 
     const reader = response.body?.getReader()
     if (!reader) {
       throw new Error('无法读取响应流')
     }
+
+    console.log('📖 开始读取普通对话流...')
 
     const decoder = new TextDecoder()
 
@@ -68,6 +80,7 @@ export function useChatHandler() {
 
     // 播放 TTS 语音
     if (fullResponse.trim()) {
+      console.log('🔊 调用TTS文字转语音:', fullResponse.substring(0, 50) + '...')
       onPlayTTS?.(fullResponse)
     }
   }
@@ -85,14 +98,16 @@ export function useChatHandler() {
     onPlayTTS?: (text: string) => void,
     onRoleplayChat?: (content: string, messageId: string) => Promise<void>
   ) {
-    if (!isConversationReady) {
-      ElMessage.warning('对话系统未准备就绪，请稍后再试')
+    // 角色扮演模式需要等待角色初始化完成
+    if (isRoleplayMode && !isIntroductionComplete) {
+      ElMessage.warning('角色正在初始化中，请稍后再试')
       return
     }
 
-    // 检查是否为角色扮演模式，但角色初始化尚未完成
-    if (isRoleplayMode && !isIntroductionComplete) {
-      ElMessage.warning('角色正在初始化中，请稍后再试')
+    // 普通模式下，文字对话立即可用，不需要等待语音服务
+    // 只有在角色扮演模式下才需要检查系统准备状态
+    if (isRoleplayMode && !isConversationReady) {
+      ElMessage.warning('对话系统未准备就绪，请稍后再试')
       return
     }
 
