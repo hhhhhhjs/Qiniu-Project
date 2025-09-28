@@ -24,14 +24,17 @@
       <!-- 调试信息 (开发环境) -->
       <div v-if="true" class="debug-info" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 8px; border-radius: 4px; font-size: 12px; z-index: 1000;">
         <div>模式: {{ isRoleplayMode ? '角色扮演' : '普通对话' }}</div>
+        <div>系统状态: {{ isSystemReady ? '已准备' : '初始化中' }}</div>
         <div v-if="isRoleplayMode">原始输入: {{ originalInput }}</div>
         <div v-if="isRoleplayMode">角色数据: {{ roleplayData ? '已加载' : '未加载' }}</div>
         <div v-if="isRoleplayMode">介绍完成: {{ isIntroductionComplete ? '是' : '否' }}</div>
+        <div v-if="isRoleplayMode">角色准备: {{ isRoleplayReady ? '是' : '否' }}</div>
+        <div v-if="!isRoleplayMode">语音准备: {{ isConversationReady ? '是' : '否' }}</div>
       </div>
 
       <!-- 状态指示器 -->
       <div class="status-indicator">
-        <div v-if="!isConversationReady" class="status-item connecting">
+        <div v-if="!isSystemReady" class="status-item connecting">
           <div class="status-dot"></div>
           <span>{{ isRoleplayMode ? '正在初始化角色...' : '正在连接语音服务...' }}</span>
         </div>
@@ -123,6 +126,7 @@ const {
   originalInput,
   roleplayData,
   isIntroductionComplete,
+  isRoleplayReady,
   initializeRoleplay,
   handleRoleplayChat
 } = roleplay
@@ -143,6 +147,17 @@ const waveIntensity = ref(0.5)
 const useRealAudio = ref(true)
 const audioFrequencies = ref<number[]>([])
 const chatPanelRef = ref<InstanceType<typeof VoiceChatPanel>>()
+
+// 计算整体准备状态
+const isSystemReady = computed(() => {
+  if (isRoleplayMode.value) {
+    // 角色扮演模式：需要角色初始化完成
+    return isRoleplayReady.value
+  } else {
+    // 普通模式：需要语音对话准备完成
+    return isConversationReady.value
+  }
+})
 
 // 更新 UI 状态
 function updateUIState(state: 'idle' | 'listening' | 'processing' | 'speaking') {
